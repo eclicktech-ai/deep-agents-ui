@@ -24,7 +24,7 @@ Seenos AI Agent 平台的前端项目，基于 Next.js 14 (App Router) + TypeScr
 
 ## 🛠 技术栈
 
-- **框架**: Next.js 14 (App Router)
+- **框架**: Next.js 16 (App Router)
 - **语言**: TypeScript 5.x
 - **样式**: Tailwind CSS + CSS Variables
 - **UI 组件**: shadcn/ui (Radix UI primitives)
