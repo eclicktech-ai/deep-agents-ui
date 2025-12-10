@@ -615,9 +615,9 @@ export function useStream(options: UseStreamOptions) {
         const data = event.data as { messages?: Message[]; todos?: TodoItem[]; files?: Record<string, unknown> };
         
         // Debug: 打印 files 数据格式
-        if (data.files) {
-          console.log('[useStream] state_update files:', JSON.stringify(data.files, null, 2));
-        }
+        // if (data.files) {
+        //   console.log('[useStream] state_update files:', JSON.stringify(data.files, null, 2));
+        // }
         
         if (data.messages) {
           // 转换 files 为正确格式
