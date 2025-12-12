@@ -514,7 +514,15 @@ export function SettingsProvider({
       });
 
       // 调用 API 保存用户设置
-      await apiClient.updateSettings(settingsToSave);
+      const updatedSettings = await apiClient.updateSettings(settingsToSave);
+      
+      // 同步更新 localStorage，确保 AuthProvider 的状态与后端一致
+      // 这样刷新页面后设置不会丢失
+      const SETTINGS_KEY = "deep_agents_settings";
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(updatedSettings));
+      
+      // 触发自定义事件，通知 AuthProvider 和其他组件设置已更新
+      window.dispatchEvent(new CustomEvent("settings-updated"));
       
       // 如果是管理员，还需要保存管理员配置
       if (permissions.isAdmin) {

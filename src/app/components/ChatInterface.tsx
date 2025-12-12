@@ -82,7 +82,8 @@ export const ChatInterface = React.memo(() => {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (submitDisabled) return;
-      if (e.key === "Enter" && !e.shiftKey) {
+      // 检查 isComposing 防止中文输入法输入时回车确认拼音导致提前发送
+      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
         e.preventDefault();
         handleSubmit();
       }

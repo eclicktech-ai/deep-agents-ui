@@ -316,23 +316,51 @@ export function useChat(options: UseChatOptions = {}) {
   );
 
   // 切换会话 - 立即更新 UI，异步加载历史
-  // 切换会话 - 只更新 URL，历史加载由 useEffect 处理
+  // 切换会话 - 主动连接 WebSocket 并加载历史
   const switchConversation = useCallback(
     (newCid: string) => {
       console.log("[useChat] Switching to conversation:", newCid);
       
       // 取消当前加载
       cancelProgressiveLoad();
-      loadingCidRef.current = null; // 允许新的加载
       
       // 重置会话状态（清空消息等）
       stream.resetConversation();
       
-      // 更新 URL（这会触发 useEffect 加载历史）
+      // 主动连接到新的 cid（不依赖 useEffect）
+      stream.connectToCid(newCid);
+      
+      // 更新 URL 和状态
       setUrlCid(newCid);
       setActiveCid(newCid);
+      
+      // 加载会话历史
+      loadingCidRef.current = newCid;
+      apiClient.get<ConversationDetailResponse>(`/conversations/${newCid}`)
+        .then(async (data) => {
+          // 确保还是同一个 cid
+          if (loadingCidRef.current !== newCid) {
+            return;
+          }
+          await loadMessagesProgressively(
+            data.messages || [],
+            data.todos || [],
+            data.files || {}
+          );
+        })
+        .catch((error) => {
+          console.error("[useChat] Failed to load conversation:", error);
+          if ((error as { status?: number }).status === 404) {
+            setUrlCid(null);
+          }
+        })
+        .finally(() => {
+          if (loadingCidRef.current === newCid) {
+            loadingCidRef.current = null;
+          }
+        });
     },
-    [stream, setUrlCid, cancelProgressiveLoad]
+    [stream, setUrlCid, cancelProgressiveLoad, loadMessagesProgressively]
   );
 
   // 删除会话

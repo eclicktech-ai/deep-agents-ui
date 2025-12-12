@@ -10,7 +10,7 @@ export function AppearanceTab() {
   const { theme, setTheme, userModelSettings, setUserModelSettings } = useSettings();
 
   // 默认开启 token 显示
-  const showTokenUsage = userModelSettings.showTokenUsage !== false;
+  const showTokenUsage = userModelSettings.showTokenUsage ?? false;
 
   const toggleShowTokenUsage = useCallback((checked: boolean) => {
     setUserModelSettings((prev) => {

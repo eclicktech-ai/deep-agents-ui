@@ -179,6 +179,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initAuth();
   }, []);
 
+  // 监听 settings-updated 事件，从 localStorage 重新加载设置
+  // 这样当 SettingsContext 保存设置后，AuthProvider 的状态会自动同步
+  useEffect(() => {
+    const handleSettingsUpdated = () => {
+      const settingsJson = localStorage.getItem(SETTINGS_KEY);
+      if (settingsJson) {
+        try {
+          const settings = JSON.parse(settingsJson);
+          setState((prev) => ({ ...prev, settings }));
+        } catch {
+          // 忽略解析错误
+        }
+      }
+    };
+
+    window.addEventListener("settings-updated", handleSettingsUpdated);
+    return () => {
+      window.removeEventListener("settings-updated", handleSettingsUpdated);
+    };
+  }, []);
+
   // 登录
   const login = useCallback(async (email: string, password: string): Promise<User> => {
     setState((prev) => ({ ...prev, isLoading: true }));
