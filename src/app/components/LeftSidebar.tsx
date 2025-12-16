@@ -345,8 +345,9 @@ export const LeftSidebar = React.memo<LeftSidebarProps>(
                   </button>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto p-2">
-                  <div className="space-y-1">
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <ScrollArea className="h-full p-2">
+                    <div className="space-y-1">
                     {/* On-site Tree */}
                     <TreeItem
                       label="On-site"
@@ -468,11 +469,12 @@ export const LeftSidebar = React.memo<LeftSidebarProps>(
                       <TreeItem label="Cloud & Notes" count={knowledgeCounts.imported} icon={Cloud} level={1} onClick={() => openWizard("knowledge")} />
                       <TreeItem label="Saved Artifacts" count={knowledgeCounts.saved} icon={Save} level={1} onClick={() => openWizard("knowledge")} />
                     </TreeItem>
-                  </div>
+                    </div>
+                  </ScrollArea>
                 </div>
               </ResizablePanel>
 
-              <ResizableHandle withHandle />
+              <ResizableHandle />
 
               {/* Tasks Module - Bottom Section */}
               <ResizablePanel

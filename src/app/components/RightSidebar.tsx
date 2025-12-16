@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
-import { FileText, BookOpen, Wrench, Settings2, Activity, Layers, FolderDown } from "lucide-react";
+import { 
+  FileText, 
+  BookOpen, 
+  Wrench, 
+  Settings2, 
+  Activity, 
+  Layers, 
+  FolderDown
+} from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { FileItem } from "@/app/types/types";
 import { FileViewDialog } from "@/app/components/FileViewDialog";
@@ -49,6 +57,12 @@ const playbooks: PlaybookButton[] = [
     description: "Monitor and track",
   },
 ];
+
+// 获取文件扩展名
+const getFileExtension = (fileName: string): string => {
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  return ext || 'file';
+};
 
 export const RightSidebar = React.memo<RightSidebarProps>(
   ({ files, setFiles, isLoading, interrupt }) => {
@@ -200,21 +214,24 @@ ${customInstructions ? `Custom Instructions:\n${customInstructions}` : ''}`;
                         content: fileContent,
                       };
 
+                      const fileExt = getFileExtension(fileName);
+
                       return (
                         <div
                           key={filePath}
-                          className="group relative flex w-full items-center gap-3 rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                          className="group relative flex w-full items-center gap-2 rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
                         >
                           <button
                             type="button"
                             onClick={() => setSelectedFile(fileItem)}
-                            className="flex flex-1 items-center gap-3 min-w-0"
+                            className="flex flex-1 items-center min-w-0"
                           >
-                            <FileText
-                              size={16}
-                              className="flex-shrink-0 text-muted-foreground"
-                            />
-                            <p className="min-w-0 flex-1 truncate text-sm font-medium text-left">
+                            {/* File extension badge - light gray with rounded corners */}
+                            <span className="flex-shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-foreground">
+                              .{fileExt}
+                            </span>
+                            {/* File name with ellipsis truncation */}
+                            <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
                               {fileName}
                             </p>
                           </button>

@@ -8,7 +8,7 @@ import React, {
   FormEvent,
   useEffect,
 } from "react";
-import { ArrowUp, Square, RefreshCw, Copy, MessageCircle, MessagesSquare, Plus, Check, Wrench } from "lucide-react";
+import { ArrowUp, Square, RefreshCw, Copy, MessageCircle, MessagesSquare, Plus, Check, Wrench, Sparkles } from "lucide-react";
 import { ChatMessage } from "@/app/components/ChatMessage";
 import type {
   ToolCall,
@@ -21,7 +21,6 @@ import { useChatContext } from "@/providers/ChatProvider";
 import { cn } from "@/lib/utils";
 import { useStickToBottom } from "use-stick-to-bottom";
 import { useSuggestions } from "@/hooks/useSuggestions";
-import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -55,7 +54,7 @@ export const ChatInterface = React.memo(() => {
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [input, setInput] = useState("");
-  const [visibleSuggestions, setVisibleSuggestions] = useState(4);
+  const [_visibleSuggestions, setVisibleSuggestions] = useState(4);
   const [copySuccess, setCopySuccess] = useState(false);
   const [showAllChats, setShowAllChats] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -79,7 +78,7 @@ export const ChatInterface = React.memo(() => {
   } = useChatContext();
 
   // Use suggestions hook
-  const { suggestions: allSuggestions, isRefreshing } = useSuggestions({
+  const { suggestions: _allSuggestions, isRefreshing } = useSuggestions({
     cid,
     messages,
     isLoading,
@@ -123,7 +122,7 @@ export const ChatInterface = React.memo(() => {
   }, [cid]);
 
   // Handle suggestion click - use full prompt
-  const handleSuggestionClick = useCallback((fullPrompt: string) => {
+  const _handleSuggestionClick = useCallback((fullPrompt: string) => {
     setInput(fullPrompt);
     textareaRef.current?.focus();
   }, []);
@@ -548,10 +547,60 @@ export const ChatInterface = React.memo(() => {
             className="flex min-h-[200px] flex-col"
           >
             <div className="flex flex-1 flex-col bg-background px-4 pb-4 pt-2">
+              {/* Explore section with buttons */}
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-muted-foreground" />
+                  <span className="text-sm font-normal text-muted-foreground">Explore:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent"
+                    style={{border:'1px solid #e5e5e5',
+                      backgroundColor:'#f5f5f5',
+                      borderRadius:'20px',
+                    }}
+                  >
+                    User Intent Analyzer
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent"
+                    style={{border:'1px solid #e5e5e5',
+                      backgroundColor:'#f5f5f5',
+                      borderRadius:'20px',
+                    }}
+                  >
+                    AI-Optimized Style Guide
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent"
+                    style={{border:'1px solid #e5e5e5',
+                      backgroundColor:'#f5f5f5',
+                      borderRadius:'20px',
+                    }}
+                  >
+                    Readability Improver
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-md border border-border bg-white px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent"
+                    style={{border:'1px solid #e5e5e5',
+                      backgroundColor:'#f5f5f5',
+                      borderRadius:'20px',
+                    }}
+                  >
+                    Niche Topic Tracker
+                  </button>
+                </div>
+              </div>
+
               <form
                 onSubmit={handleSubmit}
                 className={cn(
-                  "flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card",
+                  "flex flex-1 flex-col overflow-hidden rounded-lg border border-border bg-white",
                   "transition-colors duration-200 ease-in-out"
                 )}
               >
@@ -561,73 +610,49 @@ export const ChatInterface = React.memo(() => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={isLoading ? "Running..." : "Write your message..."}
-                  className="font-inherit flex-1 resize-none border-0 bg-transparent px-[18px] py-3 text-sm leading-6 text-primary outline-none placeholder:text-tertiary"
+                  className="font-inherit flex-1 resize-none border-0 bg-transparent px-4 py-4 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground"
                 />
-                <div className="flex flex-shrink-0 items-end justify-between gap-2 px-3 pb-3">
-                  {/* Suggestion prompts - left side */}
-                  <div
+                <div className="flex flex-shrink-0 items-center justify-between gap-2 px-4 py-3">
+                  {/* Tools button - left side */}
+                  <button
+                    type="button"
+                    onClick={handleShowMore}
+                    disabled={isLoading}
                     className={cn(
-                      "flex flex-wrap items-center gap-1.5",
-                      isRefreshing && "animate-pulse"
+                      "flex items-center gap-1.5 rounded border border-border bg-white px-3 py-1.5 text-xs font-normal text-muted-foreground transition-colors hover:border-primary/50 hover:bg-accent",
+                      "disabled:opacity-50 disabled:cursor-not-allowed"
                     )}
+                    style={{border:'1px solid #e5e5e5',
+                      backgroundColor:'#f5f5f5',
+                      borderRadius:'20px',
+                    }}
                   >
-                    {allSuggestions.slice(0, visibleSuggestions).map((suggestion, index) => (
-                      <button
-                        key={`${suggestion.short}-${index}`}
-                        type="button"
-                        onClick={() => handleSuggestionClick(suggestion.full)}
-                        disabled={isLoading}
-                        title={suggestion.full}
-                        className={cn(
-                          "rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px] text-muted-foreground",
-                          "transition-all duration-200 hover:border-primary/50 hover:bg-accent hover:text-foreground",
-                          "disabled:opacity-50 disabled:cursor-not-allowed",
-                          isRefreshing && "animate-in fade-in slide-in-from-left-2 duration-300"
-                        )}
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        {suggestion.short}
-                      </button>
-                    ))}
-                    {visibleSuggestions < 20 && allSuggestions.length > visibleSuggestions && (
-                      <button
-                        type="button"
-                        onClick={handleShowMore}
-                        disabled={isLoading}
-                        className={cn(
-                          "flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px] text-muted-foreground",
-                          "transition-colors hover:border-primary/50 hover:bg-accent hover:text-foreground",
-                          "disabled:opacity-50 disabled:cursor-not-allowed"
-                        )}
-                      >
-                        <Wrench size={12} className="text-muted-foreground" />
-                        <span>Tools</span>
-                      </button>
-                    )}
-                    {isRefreshing && (
-                      <RefreshCw size={12} className="animate-spin text-muted-foreground" />
-                    )}
-                  </div>
+                    <Wrench size={14} className="text-muted-foreground" />
+                    <span>Tools (13)</span>
+                  </button>
 
                   {/* Send button - right side */}
-                  <Button
+                  <button
                     type={isLoading ? "button" : "submit"}
-                    variant={isLoading ? "destructive" : "default"}
                     onClick={isLoading ? stopStream : handleSubmit}
                     disabled={!isLoading && (submitDisabled || !input.trim())}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-accent",
+                      "disabled:opacity-50 disabled:cursor-not-allowed"
+                    )}
                   >
                     {isLoading ? (
                       <>
-                        <Square size={14} />
+                        <Square size={14} className="text-foreground" />
                         <span>Stop</span>
                       </>
                     ) : (
                       <>
-                        <ArrowUp size={18} />
+                        <ArrowUp size={16} className="text-foreground" />
                         <span>Send</span>
                       </>
                     )}
-                  </Button>
+                  </button>
                 </div>
               </form>
             </div>
