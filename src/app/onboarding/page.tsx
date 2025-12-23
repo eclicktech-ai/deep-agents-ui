@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowRight, Globe, Sun, Moon, User, LogOut } from "lucide-react";
+import { ArrowRight, Globe, Sun, Moon, User, LogOut, ExternalLink, CheckCircle } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { apiClient } from "@/lib/api/client";
 import { useContextMenu } from "@/providers/ContextProvider";
@@ -52,11 +52,12 @@ export default function OnboardingPage() {
   const { isAuthenticated, isLoading: authLoading, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { setDeepResearchStatus, reloadContextData } = useContextMenu();
-  const { createProject, validateUrl } = useProject();
+  const { createProject, validateUrl, projects, loadProjects } = useProject();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showExistingProjects, setShowExistingProjects] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const faceRef = useRef<HTMLDivElement>(null);
   const [eyePosition, setEyePosition] = useState({ x: 0, y: 0 });
@@ -68,6 +69,20 @@ export default function OnboardingPage() {
       router.push("/login");
     }
   }, [isAuthenticated, authLoading, router]);
+
+  // Load existing projects when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      loadProjects();
+    }
+  }, [isAuthenticated, authLoading, loadProjects]);
+
+  // Check if user has existing projects
+  useEffect(() => {
+    if (projects.length > 0 && !showExistingProjects) {
+      setShowExistingProjects(true);
+    }
+  }, [projects, showExistingProjects]);
 
   // Mount animation
   useEffect(() => {
@@ -216,9 +231,7 @@ export default function OnboardingPage() {
         // Use normalized URL from validation
         const normalizedUrl = validationResult.normalized_url || finalUrl;
 
-        // Step 2: Create project
-        toast.info("Creating project...");
-        
+        // Step 2: Create or Update project
         // Extract domain name for project name
         let projectName = "My Website";
         try {
@@ -228,18 +241,45 @@ export default function OnboardingPage() {
           console.warn("Failed to extract domain name:", err);
         }
 
-        const project = await createProject({
-          name: projectName,
-          url: normalizedUrl,
-        });
+        // Check if user already has a project
+        const hasExistingProject = projects.length > 0;
+        let project;
 
-        if (!project) {
-          throw new Error("Failed to create project");
+        if (hasExistingProject) {
+          // Update existing project
+          toast.info("Updating project...");
+          const existingProject = projects[0];
+          
+          project = await apiClient.updateProject(existingProject.id, {
+            name: projectName,
+            url: normalizedUrl,
+          });
+
+          if (!project) {
+            throw new Error("Failed to update project");
+          }
+
+          toast.success("Project updated successfully");
+        } else {
+          // Create new project (first time)
+          toast.info("Creating project...");
+          
+          project = await createProject({
+            name: projectName,
+            url: normalizedUrl,
+          });
+
+          if (!project) {
+            throw new Error("Failed to create project");
+          }
         }
 
         // Save project ID to localStorage
         localStorage.setItem("seenos_current_project_id", project.id);
 
+        // Reload projects list to show the updated/new project
+        await loadProjects();
+        
         // Step 3: Load context data (now that we have a project_id)
         toast.info("Loading context data...");
         try {
@@ -257,7 +297,11 @@ export default function OnboardingPage() {
         setDeepResearchStatus("loading");
         
         // Show success message
-        toast.success("Deep Research started", {
+        const actionMessage = hasExistingProject 
+          ? "Project updated and analysis started" 
+          : "Project created and analysis started";
+        
+        toast.success(actionMessage, {
           description: "Your brand analysis is in progress. You'll be redirected to the main page.",
         });
         
@@ -282,7 +326,7 @@ export default function OnboardingPage() {
         setIsLoading(false);
       }
     },
-    [url, router, setDeepResearchStatus, validateUrl, createProject, reloadContextData]
+    [url, router, setDeepResearchStatus, validateUrl, createProject, reloadContextData, loadProjects, projects]
   );
 
   // Show loading state
@@ -420,9 +464,58 @@ export default function OnboardingPage() {
                 ? "opacity-100 translate-y-0" 
                 : "opacity-0 translate-y-2"
             }`}>
-              Analyze your brand to get started
+              {projects.length > 0 ? "Create a new project or continue with existing" : "Analyze your brand to get started"}
             </p>
           </div>
+
+          {/* Existing Projects List */}
+          {projects.length > 0 && (
+            <div className={`mb-6 transition-all duration-700 delay-250 ${
+              isMounted 
+                ? "opacity-100 translate-y-0" 
+                : "opacity-0 translate-y-4"
+            }`}>
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-foreground">Your Projects ({projects.length})</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // 确保 onboarding 完成状态已设置
+                      localStorage.setItem("seenos_onboarding_completed", "true");
+                      router.push("/");
+                    }}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Go to Dashboard
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {projects.map((project) => (
+                    <div
+                      key={project.id}
+                      className="flex items-center justify-between p-2 rounded-md bg-background hover:bg-accent transition-colors cursor-pointer"
+                      onClick={() => {
+                        localStorage.setItem("seenos_current_project_id", project.id);
+                        // 确保 onboarding 完成状态已设置，否则会被重定向回来
+                        localStorage.setItem("seenos_onboarding_completed", "true");
+                        router.push("/");
+                      }}
+                    >
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <CheckCircle size={16} className="text-primary flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{project.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{project.websiteUrl}</p>
+                        </div>
+                      </div>
+                      <ExternalLink size={14} className="text-muted-foreground flex-shrink-0 ml-2" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Onboarding Form */}
           <form onSubmit={handleSubmit} className={`space-y-4 transition-all duration-700 delay-300 ${
@@ -459,9 +552,9 @@ export default function OnboardingPage() {
               <button
                 type="submit"
                 disabled={!url.trim() || isLoading}
-                className="px-6 py-3 text-foreground font-medium hover:opacity-70 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2 whitespace-nowrap flex-shrink-0"
+                className="px-2 py-3 text-foreground font-medium hover:opacity-70 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2 whitespace-nowrap flex-shrink-0"
               >
-                <span>Start Analysis</span>
+                <span>{projects.length > 0 ? "Update & Restart Analysis" : "Start Analysis"}</span>
                 {isLoading ? (
                   <div className="relative w-4 h-4 flex-shrink-0">
                     <div className="absolute inset-0 border-2 border-foreground/20 rounded-full" />

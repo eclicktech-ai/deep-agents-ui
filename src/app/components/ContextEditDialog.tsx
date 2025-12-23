@@ -59,6 +59,9 @@ export function ContextEditDialog({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+
+
+  
   // Singleton state
   const [singletonData, setSingletonData] = useState<Record<string, any>>({});
   const [singletonVersion, setSingletonVersion] = useState<number>(1);
@@ -500,7 +503,6 @@ export function ContextEditDialog({
           section: config.section,
           limit: 100,
         });
-        console.log('[ContextEditDialog] Loaded items:', response.items);
         setItems(response.items);
       } else if (config.dataType === "persons") {
         const response = await apiClient.getPersons({
@@ -707,7 +709,6 @@ export function ContextEditDialog({
               notes: contextItem.notes || null,
               extra: contextItem.extra || {},
             };
-            console.log('[ContextEditDialog] Updating item:', item.id, updateData);
             await apiClient.updateItem(item.id, updateData);
           } else if (config.dataType === "persons") {
             const person = item as ContextPerson;
@@ -724,7 +725,6 @@ export function ContextEditDialog({
               notes: person.notes || null,
               extra: person.extra || {},
             };
-            console.log('[ContextEditDialog] Updating person:', item.id, updateData);
             await apiClient.updatePerson(item.id, updateData);
           } else if (config.dataType === "entities") {
             const entity = item as ContextEntity;
@@ -739,7 +739,6 @@ export function ContextEditDialog({
               notes: entity.notes || null,
               extra: entity.extra || {},
             };
-            console.log('[ContextEditDialog] Updating entity:', item.id, updateData);
             await apiClient.updateEntity(item.id, updateData);
           }
           successCount++;
@@ -1530,12 +1529,6 @@ export function ContextEditDialog({
     if (config?.dataType === "entities") {
       // Filter out entities pending deletion for display
       const entitiesList = (items as ContextEntity[]).filter(entity => !pendingDeletions.has(entity.id));
-      console.log('[ContextEditDialog] Rendering entities list:', {
-        section: config.section,
-        totalEntities: items.length,
-        visibleEntities: entitiesList.length,
-        entities: entitiesList
-      });
       
       const handleAdd = () => {
         // Create temporary entity with a unique temporary ID
@@ -1755,12 +1748,6 @@ export function ContextEditDialog({
     if (config?.dataType === "persons") {
       // Filter out persons pending deletion for display
       const personsList = (items as ContextPerson[]).filter(person => !pendingDeletions.has(person.id));
-      console.log('[ContextEditDialog] Rendering persons list:', {
-        section: config.section,
-        totalPersons: items.length,
-        visiblePersons: personsList.length,
-        persons: personsList
-      });
       
       const handleAdd = () => {
         // Create temporary person with a unique temporary ID

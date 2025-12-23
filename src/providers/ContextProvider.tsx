@@ -199,7 +199,6 @@ function ContextDataProvider({ children }: { children: ReactNode }) {
   // Load context data from API (合并调用，同时提取文件信息)
   const loadContextData = useCallback(async () => {
     // 追踪调用来源
-    console.log('[ContextProvider] loadContextData called, stack:', new Error().stack);
 
     try {
       // 只调用一次 getContextAll()

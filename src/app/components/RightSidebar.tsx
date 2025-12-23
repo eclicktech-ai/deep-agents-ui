@@ -224,14 +224,14 @@ ${customInstructions ? `Custom Instructions:\n${customInstructions}` : ''}`;
                           <button
                             type="button"
                             onClick={() => setSelectedFile(fileItem)}
-                            className="flex flex-1 items-center min-w-0"
+                            className="flex flex-1 items-center gap-2 min-w-0"
                           >
                             {/* File extension badge - light gray with rounded corners */}
                             <span className="flex-shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-foreground">
                               .{fileExt}
                             </span>
-                            {/* File name with ellipsis truncation */}
-                            <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                            {/* File name with ellipsis truncation - left aligned */}
+                            <p className="min-w-0 flex-1 truncate text-left text-sm font-medium text-foreground">
                               {fileName}
                             </p>
                           </button>

@@ -556,24 +556,40 @@ export const ChatInterface = React.memo(() => {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => {
+                      setInput("Analyze users' search intentions and question patterns");
+                      textareaRef.current?.focus();
+                    }}
                     className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent hover:text-accent-foreground"
                   >
                     User Intent Analyzer
                   </button>
                   <button
                     type="button"
+                    onClick={() => {
+                      setInput("Create a content style guide optimized for AI visibility");
+                      textareaRef.current?.focus();
+                    }}
                     className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent hover:text-accent-foreground"
                   >
                     AI-Optimized Style Guide
                   </button>
                   <button
                     type="button"
+                    onClick={() => {
+                      setInput("Optimize content readability to enhance AI understanding and citation rate");
+                      textareaRef.current?.focus();
+                    }}
                     className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent hover:text-accent-foreground"
                   >
                     Readability Improver
                   </button>
                   <button
                     type="button"
+                    onClick={() => {
+                      setInput("Track popular topics and keywords in specific subfields");
+                      textareaRef.current?.focus();
+                    }}
                     className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-normal text-muted-foreground transition-all hover:border-primary/50 hover:bg-accent hover:text-accent-foreground"
                   >
                     Niche Topic Tracker

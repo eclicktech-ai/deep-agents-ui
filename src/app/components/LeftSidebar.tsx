@@ -46,7 +46,6 @@ import {
   Upload,
   Cloud,
   Save,
-  MapIcon,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -400,9 +399,6 @@ export const LeftSidebar = React.memo<LeftSidebarProps>(
                         <TreeItem label="Product Pages" count={onSiteCounts.pagesProduct} icon={ShoppingBag} level={2} onClick={() => openEditDialog("Product Pages")} />
                         <TreeItem label="Resources" count={onSiteCounts.pagesResources} icon={Book} level={2} onClick={() => openEditDialog("Resources")} />
                         <TreeItem label="Legal & Updates" count={onSiteCounts.pagesLegal} icon={FileText} level={2} onClick={() => openEditDialog("Legal & Updates")} />
-                        <TreeItem label="Sitemap URLs" count={onSiteCounts.sitemapUrls} icon={MapIcon} level={2} onClick={() => openEditDialog("Sitemap URLs")} />
-                        <TreeItem label="Header Links" count={onSiteCounts.headerLinks} icon={LinkIcon} level={2} onClick={() => openEditDialog("Header Links")} />
-                        <TreeItem label="Footer Links" count={onSiteCounts.footerLinks} icon={LinkIcon} level={2} onClick={() => openEditDialog("Footer Links")} />
                       </TreeItem>
 
                       <TreeItem label="Landing Pages" count={onSiteCounts.landing} icon={Megaphone} level={1} onClick={() => openEditDialog("Landing Pages")} />

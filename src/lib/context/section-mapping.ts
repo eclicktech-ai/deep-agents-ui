@@ -44,9 +44,6 @@ export const SECTION_MAPPING: Record<string, SectionConfig> = {
   'Key Website Pages': { section: 'key_pages', category: 'onsite', dataType: 'items', label: 'Key Website Pages' },
   'Landing Pages': { section: 'landing_pages', category: 'onsite', dataType: 'items', label: 'Landing Pages' },
   'Blog & Resources': { section: 'blog_posts', category: 'onsite', dataType: 'items', label: 'Blog & Resources' },
-  'Sitemap URLs': { section: 'sitemap_urls', category: 'onsite', dataType: 'items', label: 'Sitemap URLs' },
-  'Header Links': { section: 'header_links', category: 'onsite', dataType: 'items', label: 'Header Links' },
-  'Footer Links': { section: 'footer_links', category: 'onsite', dataType: 'items', label: 'Footer Links' },
 
   // Content
   'Problem Statement': { section: 'problem_statement', category: 'onsite', dataType: 'singleton', label: 'Problem Statement' },
