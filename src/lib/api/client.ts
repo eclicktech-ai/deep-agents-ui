@@ -992,6 +992,15 @@ class ApiClient {
     return this.get<OnboardingSummary>('/onboarding/summary');
   }
 
+  /** 重置用户 Onboarding 状态 (管理员) */
+  async resetOnboardingStatus(userId: string, projectId?: string): Promise<{ status: string; message: string }> {
+    const body: any = {};
+    if (projectId) {
+      body.project_id = projectId;
+    }
+    return this.post<{ status: string; message: string }>(`/onboarding/admin/${userId}/reset`, body);
+  }
+
   // ============ Projects API ============
 
   /** 获取项目列表 */

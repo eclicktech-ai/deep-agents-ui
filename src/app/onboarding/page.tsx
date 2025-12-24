@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowRight, Globe, Sun, Moon, User, LogOut, ExternalLink, CheckCircle } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
-import { apiClient } from "@/lib/api/client";
+import { apiClient, type Project } from "@/lib/api/client";
 import { useContextMenu } from "@/providers/ContextProvider";
 import { useProject } from "@/providers/ProjectProvider";
 import { toast } from "sonner";
@@ -52,7 +52,7 @@ export default function OnboardingPage() {
   const { isAuthenticated, isLoading: authLoading, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { setDeepResearchStatus, reloadContextData } = useContextMenu();
-  const { createProject, validateUrl, projects, loadProjects } = useProject();
+  const { createProject, updateProject, validateUrl, projects, loadProjects } = useProject();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -241,37 +241,40 @@ export default function OnboardingPage() {
           console.warn("Failed to extract domain name:", err);
         }
 
-        // Check if user already has a project
+        // Check if user has existing projects
         const hasExistingProject = projects.length > 0;
-        let project;
+        let project: Project;
 
         if (hasExistingProject) {
           // Update existing project
           toast.info("Updating project...");
           const existingProject = projects[0];
           
-          project = await apiClient.updateProject(existingProject.id, {
+          const updatedProject = await updateProject(existingProject.id, {
             name: projectName,
             url: normalizedUrl,
           });
 
-          if (!project) {
+          if (!updatedProject) {
             throw new Error("Failed to update project");
           }
 
+          project = updatedProject;
           toast.success("Project updated successfully");
         } else {
           // Create new project (first time)
           toast.info("Creating project...");
           
-          project = await createProject({
+          const newProject = await createProject({
             name: projectName,
             url: normalizedUrl,
           });
 
-          if (!project) {
+          if (!newProject) {
             throw new Error("Failed to create project");
           }
+          
+          project = newProject;
         }
 
         // Save project ID to localStorage
@@ -326,7 +329,7 @@ export default function OnboardingPage() {
         setIsLoading(false);
       }
     },
-    [url, router, setDeepResearchStatus, validateUrl, createProject, reloadContextData, loadProjects, projects]
+    [url, router, setDeepResearchStatus, validateUrl, createProject, updateProject, projects, reloadContextData, loadProjects]
   );
 
   // Show loading state
@@ -554,7 +557,7 @@ export default function OnboardingPage() {
                 disabled={!url.trim() || isLoading}
                 className="px-2 py-3 text-foreground font-medium hover:opacity-70 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2 whitespace-nowrap flex-shrink-0"
               >
-                <span>{projects.length > 0 ? "Update & Restart Analysis" : "Start Analysis"}</span>
+                <span>{projects.length > 0 ? "Update & Restart" : "Start Analysis"}</span>
                 {isLoading ? (
                   <div className="relative w-4 h-4 flex-shrink-0">
                     <div className="absolute inset-0 border-2 border-foreground/20 rounded-full" />

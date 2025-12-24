@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Sun, Moon, LogOut, User, BookOpen } from "lucide-react";
+import { Sun, Moon, LogOut, User, RotateCcw } from "lucide-react";
 import { ChatProvider, useChatContext } from "@/providers/ChatProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { useContextMenu } from "@/providers/ContextProvider";
@@ -317,7 +317,7 @@ function AuthenticatedHome() {
               className="rounded-md p-2 hover:bg-accent"
               title="Back to Onboarding"
             >
-              <BookOpen size={18} className="text-muted-foreground" />
+              <RotateCcw size={18} className="text-muted-foreground" />
             </button>
             <button
               onClick={toggleTheme}

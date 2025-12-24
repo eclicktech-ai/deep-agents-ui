@@ -12,4 +12,5 @@ export { CoverageForm } from "./CoverageForm";
 export { SimpleItemListForm } from "./SimpleItemListForm";
 export { PlatformSelectForm } from "./PlatformSelectForm";
 export { DualFieldForm } from "./DualFieldForm";
+export { MonitoringScopeForm } from "./MonitoringScopeForm";
 

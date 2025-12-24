@@ -27,6 +27,7 @@ import type { TabProps } from "../types";
 import { ReadOnlyField } from "../components/ReadOnlyField";
 import { SectionHeader } from "../components/SectionHeader";
 import { SubSectionHeader } from "../components/SubSectionHeader";
+import { EditableSectionLabel } from "../components/EditableSectionLabel";
 
 export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
   return (
@@ -52,7 +53,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                     </Label>
                     <ReadOnlyField
                       value={contextData.onSite.brandInfo.name}
-                      placeholder="Company or Product Name"
                     />
                   </div>
                   <div>
@@ -65,7 +65,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                           (c: any) => c.url === "#meta-subtitle"
                         )?.name
                       }
-                      placeholder="Your Tagline or Slogan"
                     />
                   </div>
                 </div>
@@ -79,7 +78,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#meta-description"
                       )?.name
                     }
-                    placeholder="A compelling description..."
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-2">
@@ -93,7 +91,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                           (c: any) => c.url === "#meta-og-image"
                         )?.name
                       }
-                      placeholder="https://... (1200x630)"
                     />
                   </div>
                   <div>
@@ -106,7 +103,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                           (c: any) => c.url === "#meta-favicon"
                         )?.name
                       }
-                      placeholder="https://... (32x32)"
                     />
                   </div>
                 </div>
@@ -122,7 +118,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-logo"
                       )?.name
                     }
-                    placeholder="Full Logo (Light)"
                   />
                   <ReadOnlyField
                     value={
@@ -130,7 +125,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-logo-dark"
                       )?.name
                     }
-                    placeholder="Full Logo (Dark)"
                   />
                   <ReadOnlyField
                     value={
@@ -138,7 +132,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-logo-icon"
                       )?.name
                     }
-                    placeholder="Icon Only (Light)"
                   />
                   <ReadOnlyField
                     value={
@@ -146,7 +139,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-logo-icon-dark"
                       )?.name
                     }
-                    placeholder="Icon Only (Dark)"
                   />
                 </div>
               </div>
@@ -161,7 +153,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-color-primary"
                       )?.name
                     }
-                    placeholder="Primary (Light): #3B82F6"
                   />
                   <ReadOnlyField
                     value={
@@ -169,7 +160,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-color-primary-dark"
                       )?.name
                     }
-                    placeholder="Primary (Dark): #60A5FA"
                   />
                   <ReadOnlyField
                     value={
@@ -177,7 +167,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-color-secondary"
                       )?.name
                     }
-                    placeholder="Secondary (Light): #10B981"
                   />
                   <ReadOnlyField
                     value={
@@ -185,7 +174,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-color-secondary-dark"
                       )?.name
                     }
-                    placeholder="Secondary (Dark): #34D399"
                   />
                 </div>
               </div>
@@ -200,7 +188,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-font-heading"
                       )?.name
                     }
-                    placeholder="Heading: Inter"
                   />
                   <ReadOnlyField
                     value={
@@ -208,7 +195,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#brand-font-body"
                       )?.name
                     }
-                    placeholder="Body: Open Sans"
                   />
                 </div>
               </div>
@@ -222,7 +208,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                       (c: any) => c.url === "#brand-tone"
                     )?.name
                   }
-                  placeholder="Professional, Friendly, Bold..."
                 />
               </div>
               <div>
@@ -235,7 +220,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                       (c: any) => c.url === "#brand-languages"
                     )?.name
                   }
-                  placeholder="English, Spanish, Chinese..."
                 />
               </div>
             </div>
@@ -266,7 +250,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "home"
                       )?.url
                     }
-                    placeholder="https://..."
                   />
                 </div>
                 <div>
@@ -279,7 +262,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "about"
                       )?.url
                     }
-                    placeholder="/about"
                   />
                 </div>
                 <div>
@@ -292,7 +274,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-contact"
                       )?.name
                     }
-                    placeholder="/contact"
                   />
                 </div>
                 <div>
@@ -305,7 +286,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "career"
                       )?.url
                     }
-                    placeholder="/careers"
                   />
                 </div>
               </div>
@@ -327,7 +307,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-products"
                       )?.name
                     }
-                    placeholder="/products"
                   />
                 </div>
                 <div>
@@ -340,7 +319,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-features"
                       )?.name
                     }
-                    placeholder="/features"
                   />
                 </div>
                 <div>
@@ -353,7 +331,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "pricing"
                       )?.url
                     }
-                    placeholder="/pricing"
                   />
                 </div>
                 <div>
@@ -366,7 +343,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-solutions"
                       )?.name
                     }
-                    placeholder="/solutions"
                   />
                 </div>
               </div>
@@ -388,7 +364,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-blog"
                       )?.name
                     }
-                    placeholder="/blog"
                   />
                 </div>
                 <div>
@@ -401,7 +376,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "documentation"
                       )?.url
                     }
-                    placeholder="/docs"
                   />
                 </div>
                 <div>
@@ -414,7 +388,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "faq"
                       )?.url
                     }
-                    placeholder="/faq"
                   />
                 </div>
                 <div>
@@ -427,7 +400,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "case_study"
                       )?.url
                     }
-                    placeholder="/case-studies"
                   />
                 </div>
               </div>
@@ -449,7 +421,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.type === "legal"
                       )?.url
                     }
-                    placeholder="/terms"
                   />
                 </div>
                 <div>
@@ -462,7 +433,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-privacy"
                       )?.name
                     }
-                    placeholder="/privacy"
                   />
                 </div>
                 <div>
@@ -475,7 +445,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-changelog"
                       )?.name
                     }
-                    placeholder="/changelog"
                   />
                 </div>
                 <div>
@@ -488,7 +457,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         (c: any) => c.url === "#page-status"
                       )?.name
                     }
-                    placeholder="/status"
                   />
                 </div>
               </div>
@@ -514,7 +482,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                   <ReadOnlyField
                     key={page.id}
                     value={page.url}
-                    placeholder="Page URL"
                   />
                 ))
               )}
@@ -540,7 +507,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                   <ReadOnlyField
                     key={post.id}
                     value={post.url}
-                    placeholder="Blog URL"
                   />
                 ))
               )}
@@ -561,42 +527,35 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">
-                    Headline / Value Proposition
-                  </Label>
+                  <EditableSectionLabel
+                    label="Headline / Value Proposition"
+                    onEdit={openEditDialog}
+                    editLabel="Headline"
+                  />
                   <ReadOnlyField
                     value={contextData.onSite.brandInfo.uniqueSellingPoints?.[0]}
-                    placeholder="Your main headline..."
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">
-                    Subheadline
-                  </Label>
+                  <EditableSectionLabel
+                    label="Subheadline"
+                    onEdit={openEditDialog}
+                    editLabel="Subheadline"
+                  />
                   <ReadOnlyField
                     value={contextData.onSite.brandInfo.tagline}
-                    placeholder="Supporting statement..."
                   />
                 </div>
                 {/* CTA Buttons */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
-                    Call to Action (CTA)
-                    {(contextData.onSite.websiteContent || []).filter(
+                  <EditableSectionLabel
+                    label="Call to Action (CTA)"
+                    count={(contextData.onSite.websiteContent || []).filter(
                       (c: any) => c.url === "#cta"
-                    ).length > 0 && (
-                      <span>
-                        {" "}
-                        (
-                        {
-                          (contextData.onSite.websiteContent || []).filter(
-                            (c: any) => c.url === "#cta"
-                          ).length
-                        }
-                        )
-                      </span>
-                    )}
-                  </Label>
+                    ).length}
+                    onEdit={openEditDialog}
+                    editLabel="Call to Action"
+                  />
                   <div className="space-y-1.5">
                     {(contextData.onSite.websiteContent || []).filter(
                       (c: any) => c.url === "#cta"
@@ -611,12 +570,10 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                           <div key={item.id} className="flex gap-1">
                             <ReadOnlyField
                               value={item.name}
-                              placeholder="Button text"
                               className="w-1/3"
                             />
                             <ReadOnlyField
                               value={item.description}
-                              placeholder="URL"
                               className="flex-1"
                             />
                           </div>
@@ -628,23 +585,14 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
               <div className="space-y-3">
                 {/* Feature Image/Video */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
-                    Feature Images / Videos
-                    {(contextData.onSite.websiteContent || []).filter(
+                  <EditableSectionLabel
+                    label="Feature Images / Videos"
+                    count={(contextData.onSite.websiteContent || []).filter(
                       (c: any) => c.url === "#hero-media"
-                    ).length > 0 && (
-                      <span>
-                        {" "}
-                        (
-                        {
-                          (contextData.onSite.websiteContent || []).filter(
-                            (c: any) => c.url === "#hero-media"
-                          ).length
-                        }
-                        )
-                      </span>
-                    )}
-                  </Label>
+                    ).length}
+                    onEdit={openEditDialog}
+                    editLabel="Media"
+                  />
                   <div className="space-y-1.5">
                     {(contextData.onSite.websiteContent || []).filter(
                       (c: any) => c.url === "#hero-media"
@@ -659,7 +607,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                           <ReadOnlyField
                             key={item.id}
                             value={item.name}
-                            placeholder="Media URL"
                           />
                         ))
                     )}
@@ -667,23 +614,14 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                 </div>
                 {/* Key Metrics */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
-                    Key Metrics / Social Proof
-                    {(contextData.onSite.websiteContent || []).filter(
+                  <EditableSectionLabel
+                    label="Key Metrics / Social Proof"
+                    count={(contextData.onSite.websiteContent || []).filter(
                       (c: any) => c.url === "#metric"
-                    ).length > 0 && (
-                      <span>
-                        {" "}
-                        (
-                        {
-                          (contextData.onSite.websiteContent || []).filter(
-                            (c: any) => c.url === "#metric"
-                          ).length
-                        }
-                        )
-                      </span>
-                    )}
-                  </Label>
+                    ).length}
+                    onEdit={openEditDialog}
+                    editLabel="Metrics"
+                  />
                   <div className="space-y-1.5">
                     {(contextData.onSite.websiteContent || []).filter(
                       (c: any) => c.url === "#metric"
@@ -698,7 +636,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                           <ReadOnlyField
                             key={item.id}
                             value={item.name}
-                            placeholder="Metric"
                           />
                         ))
                     )}
@@ -736,7 +673,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                       <ReadOnlyField
                         key={item.id}
                         value={item.name}
-                        placeholder="Pain point"
                       />
                     ))
                 )}
@@ -768,7 +704,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                       <ReadOnlyField
                         key={item.id}
                         value={item.name}
-                        placeholder="Target segment"
                       />
                     ))
                 )}
@@ -804,7 +739,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                       <ReadOnlyField
                         key={item.id}
                         value={item.name}
-                        placeholder="Use case"
                       />
                     ))
                 )}
@@ -836,7 +770,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                       <ReadOnlyField
                         key={item.id}
                         value={item.name}
-                        placeholder="Industry"
                       />
                     ))
                 )}
@@ -919,7 +852,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={item.id}
                           value={item.name}
-                          placeholder="Testimonial"
                         />
                       ))
                   )}
@@ -957,7 +889,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={item.id}
                           value={item.url}
-                          placeholder="Case study URL"
                         />
                       ))
                   )}
@@ -995,7 +926,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={item.id}
                           value={item.name}
-                          placeholder="Badge"
                         />
                       ))
                   )}
@@ -1046,7 +976,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                 </Label>
                 <ReadOnlyField
                   value={contextData.onSite.brandInfo.mission}
-                  placeholder="Our mission..."
                 />
               </div>
               <div>
@@ -1055,7 +984,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                 </Label>
                 <ReadOnlyField
                   value={contextData.onSite.brandInfo.vision}
-                  placeholder="Our vision..."
                 />
               </div>
               <div>
@@ -1064,7 +992,6 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                 </Label>
                 <ReadOnlyField
                   value={(contextData.onSite.brandInfo as any).story}
-                  placeholder="Our story..."
                 />
               </div>
             </div>
@@ -1121,8 +1048,11 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                   Email
                 </Label>
                 <ReadOnlyField
-                  value={(contextData.onSite.brandInfo as any).contactEmail}
-                  placeholder="contact@example.com"
+                  value={
+                    contextData.onSite.websiteContent.find(
+                      (c: any) => c.url === "#contact-email"
+                    )?.name
+                  }
                 />
               </div>
               <div>
@@ -1130,8 +1060,11 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                   Phone
                 </Label>
                 <ReadOnlyField
-                  value={(contextData.onSite.brandInfo as any).contactPhone}
-                  placeholder="+1 (555) 000-0000"
+                  value={
+                    contextData.onSite.websiteContent.find(
+                      (c: any) => c.url === "#contact-phone"
+                    )?.name
+                  }
                 />
               </div>
               <div>
@@ -1139,8 +1072,11 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                   Address
                 </Label>
                 <ReadOnlyField
-                  value={(contextData.onSite.brandInfo as any).location}
-                  placeholder="123 Main St, City, Country"
+                  value={
+                    contextData.onSite.websiteContent.find(
+                      (c: any) => c.url === "#contact-address"
+                    )?.name
+                  }
                 />
               </div>
             </div>

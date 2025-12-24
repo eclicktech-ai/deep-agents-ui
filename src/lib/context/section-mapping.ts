@@ -42,8 +42,10 @@ export const SECTION_MAPPING: Record<string, SectionConfig> = {
   'Resources': { section: 'resources', category: 'onsite', dataType: 'items', label: 'Resources' },
   'Legal & Updates': { section: 'key_pages', category: 'onsite', dataType: 'items', label: 'Legal & Updates' },
   'Key Website Pages': { section: 'key_pages', category: 'onsite', dataType: 'items', label: 'Key Website Pages' },
+  'Key Pages': { section: 'key_pages', category: 'onsite', dataType: 'items', label: 'Key Pages' },
   'Landing Pages': { section: 'landing_pages', category: 'onsite', dataType: 'items', label: 'Landing Pages' },
   'Blog & Resources': { section: 'blog_posts', category: 'onsite', dataType: 'items', label: 'Blog & Resources' },
+  'Blog Posts': { section: 'blog_posts', category: 'onsite', dataType: 'items', label: 'Blog Posts' },
 
   // Content
   'Problem Statement': { section: 'problem_statement', category: 'onsite', dataType: 'singleton', label: 'Problem Statement' },
@@ -75,8 +77,13 @@ export const SECTION_MAPPING: Record<string, SectionConfig> = {
   'Support Channels': { section: 'contact_info', category: 'onsite', dataType: 'singleton', label: 'Support Channels' },
   'Additional': { section: 'contact_info', category: 'onsite', dataType: 'singleton', label: 'Additional' },
   'Contact Information': { section: 'contact_info', category: 'onsite', dataType: 'singleton', label: 'Contact Information' },
+  'Contact Info': { section: 'contact_info', category: 'onsite', dataType: 'singleton', label: 'Contact Info' },
 
   // ============ Offsite ============
+  // Monitoring
+  'Monitoring Scope': { section: 'monitoring_scope', category: 'offsite', dataType: 'singleton', label: 'Monitoring Scope' },
+  
+  // Social Profiles
   'Official Channels': { section: 'social_profiles', category: 'offsite', dataType: 'entities', label: 'Official Channels' },
   'Executive Accounts': { section: 'social_profiles', category: 'offsite', dataType: 'entities', label: 'Executive Accounts' },
   'Owned Presence': { section: 'social_profiles', category: 'offsite', dataType: 'entities', label: 'Owned Presence' },
@@ -90,10 +97,12 @@ export const SECTION_MAPPING: Record<string, SectionConfig> = {
   'Q&A': { section: 'community_forums', category: 'offsite', dataType: 'entities', label: 'Q&A' },
   'Groups': { section: 'community_forums', category: 'offsite', dataType: 'entities', label: 'Groups' },
   'Community': { section: 'community_forums', category: 'offsite', dataType: 'entities', label: 'Community' },
+  'Community Forums': { section: 'community_forums', category: 'offsite', dataType: 'entities', label: 'Community Forums' },
   
   'Channels': { section: 'media_outlets', category: 'offsite', dataType: 'entities', label: 'Channels' },
   'Coverage': { section: 'press_coverage', category: 'offsite', dataType: 'items', label: 'Coverage' },
   'Events': { section: 'press_coverage', category: 'offsite', dataType: 'items', label: 'Events' },
+  'Press Coverage': { section: 'press_coverage', category: 'offsite', dataType: 'items', label: 'Press Coverage' },
   'Media Outlets': { section: 'media_outlets', category: 'offsite', dataType: 'entities', label: 'Media Outlets' },
   'Target Keywords': { section: 'target_keywords', category: 'offsite', dataType: 'items', label: 'Target Keywords' },
   

@@ -52,7 +52,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={idx}
                           value={keyword}
-                          placeholder="Brand keyword"
                         />
                       )
                     )
@@ -76,7 +75,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={idx}
                           value={keyword}
-                          placeholder="Product keyword"
                         />
                       )
                     )
@@ -100,7 +98,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={idx}
                           value={person}
-                          placeholder="Person name"
                         />
                       )
                     )
@@ -124,7 +121,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={idx}
                           value={hashtag}
-                          placeholder="#hashtag"
                         />
                       )
                     )
@@ -151,7 +147,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={idx}
                           value={keyword}
-                          placeholder="Required keyword"
                         />
                       )
                     )
@@ -175,7 +170,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                         <ReadOnlyField
                           key={idx}
                           value={keyword}
-                          placeholder="Excluded keyword"
                         />
                       )
                     )
@@ -203,7 +197,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                           <ReadOnlyField
                             key={idx}
                             value={region}
-                            placeholder="Region"
                             className="text-xs"
                           />
                         )
@@ -227,7 +220,6 @@ export function OffSiteTab({ contextData, openEditDialog }: TabProps) {
                           <ReadOnlyField
                             key={idx}
                             value={lang}
-                            placeholder="Language"
                             className="text-xs"
                           />
                         )

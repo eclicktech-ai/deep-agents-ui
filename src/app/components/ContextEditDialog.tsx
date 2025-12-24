@@ -40,6 +40,7 @@ import {
   SimpleItemListForm,
   PlatformSelectForm,
   DualFieldForm,
+  MonitoringScopeForm,
 } from "@/app/components/context-forms";
 
 interface ContextEditDialogProps {
@@ -498,12 +499,64 @@ export function ContextEditDialog({
         setSingletonVersion(version);
         setSingletonJsonText(JSON.stringify(uiData || {}, null, 2));
       } else if (config.dataType === "items") {
-        const response = await apiClient.getItems({
-          category: config.category,
-          section: config.section,
-          limit: 100,
-        });
-        setItems(response.items);
+        // Special handling for hero_ctas - load from hero_section singleton if items endpoint is empty
+        if (config.section === "hero_ctas") {
+          try {
+            const response = await apiClient.getItems({
+              category: config.category,
+              section: config.section,
+              limit: 100,
+            });
+            
+            // If no items found, try loading from hero_section singleton
+            if (response.items.length === 0) {
+              try {
+                const all = await apiClient.getContextAll();
+                const ctas = (all as any)?.onsite?.singletons?.hero_section?.ctas || [];
+                
+                // Convert singleton ctas format to items format
+                const ctaItems: ContextItem[] = ctas.map((cta: any, index: number) => ({
+                  id: `temp_cta_${index}`,
+                  user_id: "",
+                  category: config.category,
+                  section: config.section,
+                  sequence: index,
+                  title: cta.text || "",
+                  description: cta.url || "",
+                  url: cta.url || "",
+                  image_url: null,
+                  notes: null,
+                  extra: {},
+                  version: 1,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                  deleted_at: null,
+                }));
+                
+                setItems(ctaItems);
+                
+                // Mark all as pending creations so they'll be saved properly
+                setPendingCreations(ctaItems);
+              } catch (e) {
+                console.warn("[ContextEditDialog] Failed to load hero_ctas from hero_section:", e);
+                setItems(response.items);
+              }
+            } else {
+              setItems(response.items);
+            }
+          } catch (error) {
+            console.error("[ContextEditDialog] Failed to load hero_ctas items:", error);
+            setItems([]);
+          }
+        } else {
+          // Default items loading
+          const response = await apiClient.getItems({
+            category: config.category,
+            section: config.section,
+            limit: 100,
+          });
+          setItems(response.items);
+        }
       } else if (config.dataType === "persons") {
         const response = await apiClient.getPersons({
           category: config.category,
@@ -754,6 +807,47 @@ export function ContextEditDialog({
       }
 
       if (errorCount === 0) {
+        // Special handling: Sync hero_ctas to hero_section singleton
+        if (config.section === "hero_ctas" && config.dataType === "items") {
+          try {
+            // Fetch the updated items after all operations
+            const updatedResponse = await apiClient.getItems({
+              category: config.category,
+              section: config.section,
+              limit: 100,
+            });
+            
+            // Convert items to ctas format for hero_section singleton
+            const ctas = updatedResponse.items.map((item) => ({
+              text: item.title || "",
+              url: item.url || item.description || "",
+            }));
+            
+            // Fetch current hero_section to preserve other fields
+            let currentHero: any = {};
+            let heroVersion = 1;
+            try {
+              const hero = await apiClient.getSingleton("hero_section");
+              currentHero = hero.data || {};
+              heroVersion = hero.version ?? 1;
+            } catch (e: any) {
+              if (e?.status !== 404) throw e;
+            }
+            
+            // Update hero_section with new ctas
+            const merged = {
+              ...currentHero,
+              ctas,
+            };
+            
+            await apiClient.upsertSingleton("hero_section", merged, heroVersion);
+            console.log("[ContextEditDialog] Synced hero_ctas to hero_section singleton");
+          } catch (e) {
+            console.error("[ContextEditDialog] Failed to sync hero_ctas to hero_section:", e);
+            // Don't fail the whole operation if sync fails
+          }
+        }
+        
         toast.success(`Saved ${successCount} change${successCount > 1 ? 's' : ''}`);
         // Load fresh data from server first
         await loadData();
@@ -1063,6 +1157,13 @@ export function ContextEditDialog({
         case "contact_info":
           return (
             <ContactInfoForm
+              data={singletonData as any}
+              onChange={(data: any) => setSingletonData(data)}
+            />
+          );
+        case "monitoring_scope":
+          return (
+            <MonitoringScopeForm
               data={singletonData as any}
               onChange={(data: any) => setSingletonData(data)}
             />
