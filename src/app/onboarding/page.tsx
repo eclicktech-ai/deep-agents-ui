@@ -434,6 +434,20 @@ export default function OnboardingPage() {
                   ref={faceRef}
                   className="relative inline-flex items-center justify-center w-[0.8em] h-[0.8em] rounded-full border-2 border-foreground"
                 >
+                  {/* Santa Hat */}
+                  <img
+                    src="/santahat.png"
+                    alt="Santa Hat"
+                    className="absolute left-1/2 z-10 pointer-events-none"
+                    style={{
+                      background: 'transparent',
+                      top: '-0.6em',
+                      width: '0.8em',
+                      height: 'auto',
+                      transform: 'translateX(10%) scale(1.5) rotate(24deg)',
+                      transformOrigin: 'center top',
+                    }}
+                  />
                   {/* Left eye */}
                   <span 
                     className="absolute rounded-full bg-foreground"
@@ -505,7 +519,7 @@ export default function OnboardingPage() {
                         router.push("/");
                       }}
                     >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">  
                         <CheckCircle size={16} className="text-primary flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{project.name}</p>

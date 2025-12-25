@@ -17,6 +17,7 @@ import { Loader2, Plus, Trash2, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type {
   ContextItem,
   ContextPerson,
@@ -37,6 +38,7 @@ import {
   FAQForm,
   CreatorsForm,
   CoverageForm,
+  ProductsServicesForm,
   SimpleItemListForm,
   PlatformSelectForm,
   DualFieldForm,
@@ -59,6 +61,18 @@ export function ContextEditDialog({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description?: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: "",
+    onConfirm: () => {},
+  });
 
 
 
@@ -111,9 +125,20 @@ export function ContextEditDialog({
   // Update JSON text when singleton data changes (only for fallback JSON editor)
   useEffect(() => {
     if (config?.dataType === "singleton") {
-      // Only update JSON text for sections that use JSON editor
-      const jsonEditorSections = ["monitoring_scope"]; // Add other sections that need JSON editor
-      if (jsonEditorSections.includes(config.section)) {
+      // Only update JSON text for sections that use JSON editor (unknown sections)
+      // Known sections have their own form components, so they don't need JSON editor
+      const knownSections = [
+        "brand_assets",
+        "hero_headline",
+        "hero_subheadline",
+        "problem_statement",
+        "who_we_serve",
+        "about_us",
+        "contact_info",
+        "monitoring_scope",
+      ];
+      // Only update JSON text for unknown sections that will use JSON editor
+      if (!knownSections.includes(config.section)) {
         setSingletonJsonText(JSON.stringify(singletonData, null, 2));
       }
     }
@@ -459,19 +484,21 @@ export function ContextEditDialog({
         // section in /context/all (e.g. hero_headline/subheadline are inside hero_section).
         const section = config.section;
         let raw: any = {};
-        let version = 1;
+        let version = 0; // Start with 0 (new data) instead of 1
 
         try {
           const data = await apiClient.getSingleton(section);
           raw = data.data || {};
-          version = data.version ?? 1;
+          version = data.version ?? 0;
         } catch (error: any) {
           // 404 means no data yet, which is fine
           if (error.status !== 404) {
             throw error;
           }
+          // If getSingleton returns 404, check if data exists in /context/all
+          // If it does, we need to try getting the singleton again or use a different approach
           raw = {};
-          version = 1;
+          version = 0; // Use 0 for new data
         }
 
         // Enrich from /context/all when the singleton is missing or when the UI section
@@ -479,7 +506,8 @@ export function ContextEditDialog({
         const needContextAll =
           (section === "hero_headline" && !raw?.headline) ||
           (section === "hero_subheadline" && !raw?.subheadline) ||
-          (section === "brand_assets" && (!raw || Object.keys(raw).length === 0));
+          (section === "brand_assets" && (!raw || Object.keys(raw).length === 0)) ||
+          (section === "monitoring_scope" && (!raw || Object.keys(raw).length === 0));
 
         if (needContextAll) {
           try {
@@ -488,6 +516,27 @@ export function ContextEditDialog({
               raw = (all as any)?.onsite?.singletons?.hero_section || raw;
             } else if (section === "brand_assets") {
               raw = (all as any)?.onsite?.singletons?.brand_assets || raw;
+            } else if (section === "monitoring_scope") {
+              // Check if monitoring_scope exists in offsite singletons
+              const monitoringScopeData = (all as any)?.offsite?.singletons?.monitoring_scope;
+              if (monitoringScopeData && Object.keys(monitoringScopeData).length > 0) {
+                raw = monitoringScopeData;
+                // If we found data in /context/all but getSingleton returned 404,
+                // try to get the singleton again to get the correct version
+                try {
+                  const data = await apiClient.getSingleton(section);
+                  version = data.version ?? 0;
+                  // Use the data from getSingleton if available (more up-to-date)
+                  if (data.data && Object.keys(data.data).length > 0) {
+                    raw = data.data;
+                  }
+                } catch (e: any) {
+                  // If still 404, data might be new, keep version as 0
+                  if (e?.status !== 404) {
+                    console.warn("[ContextEditDialog] Failed to get singleton version:", e);
+                  }
+                }
+              }
             }
           } catch (e) {
             console.warn("[ContextEditDialog] Failed to enrich singleton from /context/all:", e);
@@ -873,8 +922,11 @@ export function ContextEditDialog({
   const handleDeleteSingleton = async () => {
     if (!config) return;
 
-    if (!confirm("Are you sure you want to delete this data?")) return;
-
+    setConfirmDialog({
+      open: true,
+      title: "Delete Data",
+      description: "Are you sure you want to delete this data? This action cannot be undone.",
+      onConfirm: async () => {
     setDeleting(true);
     try {
       await apiClient.deleteSingleton(config.section);
@@ -888,6 +940,8 @@ export function ContextEditDialog({
     } finally {
       setDeleting(false);
     }
+      },
+    });
   };
 
   const handleCreateItem = () => {
@@ -911,7 +965,7 @@ export function ContextEditDialog({
             url: (item as ContextItem).url || "",
             image_url: (item as ContextItem).image_url || "",
             notes: (item as ContextItem).notes || "",
-            extra: JSON.stringify((item as ContextItem).extra || {}, null, 2),
+            extra: (item as ContextItem).extra || {},
           }
         : config?.dataType === "persons"
         ? {
@@ -925,7 +979,7 @@ export function ContextEditDialog({
             role: (item as ContextPerson).role || "",
             notes: (item as ContextPerson).notes || "",
             social_links: (item as ContextPerson).social_links || [],
-            extra: JSON.stringify((item as ContextPerson).extra || {}, null, 2),
+            extra: (item as ContextPerson).extra || {},
           }
         : {
             name: (item as ContextEntity).name || "",
@@ -936,7 +990,7 @@ export function ContextEditDialog({
             event_date: (item as ContextEntity).event_date || "",
             location: (item as ContextEntity).location || "",
             notes: (item as ContextEntity).notes || "",
-            extra: JSON.stringify((item as ContextEntity).extra || {}, null, 2),
+            extra: (item as ContextEntity).extra || {},
           }),
     });
   };
@@ -946,16 +1000,7 @@ export function ContextEditDialog({
 
     setSaving(true);
     try {
-      let extra = {};
-      if (formData.extra) {
-        try {
-          extra = JSON.parse(formData.extra);
-        } catch {
-          toast.error("Invalid JSON in extra field");
-          setSaving(false);
-          return;
-        }
-      }
+      const extra = formData.extra || {};
 
       if (isCreating) {
         // Create new item
@@ -1083,8 +1128,11 @@ export function ContextEditDialog({
   };
 
   const handleDeleteItem = async (item: ContextItem | ContextPerson | ContextEntity) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
-
+    setConfirmDialog({
+      open: true,
+      title: "Delete Item",
+      description: "Are you sure you want to delete this item? This action cannot be undone.",
+      onConfirm: async () => {
     setDeleting(true);
     try {
       if (config?.dataType === "items") {
@@ -1104,6 +1152,8 @@ export function ContextEditDialog({
     } finally {
       setDeleting(false);
     }
+      },
+    });
   };
 
   const renderSingletonForm = () => {
@@ -1552,6 +1602,18 @@ export function ContextEditDialog({
           return (
             <ScrollArea className="h-[500px]">
               <CoverageForm
+                items={itemsList}
+                onAdd={handleAdd}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+                label={config.label}
+              />
+            </ScrollArea>
+          );
+        case "products_services":
+          return (
+            <ScrollArea className="h-[500px]">
+              <ProductsServicesForm
                 items={itemsList}
                 onAdd={handleAdd}
                 onUpdate={handleUpdate}
@@ -2118,17 +2180,6 @@ export function ContextEditDialog({
               rows={2}
             />
           </div>
-          <div>
-            <Label>Extra (JSON)</Label>
-            <Textarea
-              value={formData.extra || "{}"}
-              onChange={(e) =>
-                setFormData({ ...formData, extra: e.target.value })
-              }
-              className="font-mono text-xs"
-              rows={5}
-            />
-          </div>
           <div className="flex gap-2">
             <Button onClick={handleSaveItem} disabled={saving}>
               {saving ? (
@@ -2320,17 +2371,6 @@ export function ContextEditDialog({
               rows={2}
             />
           </div>
-          <div>
-            <Label>Extra (JSON)</Label>
-            <Textarea
-              value={formData.extra || "{}"}
-              onChange={(e) =>
-                setFormData({ ...formData, extra: e.target.value })
-              }
-              className="font-mono text-xs"
-              rows={3}
-            />
-          </div>
           <div className="flex gap-2">
             <Button onClick={handleSaveItem} disabled={saving || !formData.name}>
               {saving ? (
@@ -2414,6 +2454,7 @@ export function ContextEditDialog({
             <Label>Event Date</Label>
             <Input
               type="date"
+              lang="en"
               value={formData.event_date || ""}
               onChange={(e) =>
                 setFormData({ ...formData, event_date: e.target.value })
@@ -2437,17 +2478,6 @@ export function ContextEditDialog({
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={2}
-            />
-          </div>
-          <div>
-            <Label>Extra (JSON)</Label>
-            <Textarea
-              value={formData.extra || "{}"}
-              onChange={(e) =>
-                setFormData({ ...formData, extra: e.target.value })
-              }
-              className="font-mono text-xs"
-              rows={3}
             />
           </div>
           <div className="flex gap-2">
@@ -2545,6 +2575,17 @@ export function ContextEditDialog({
           </div>
         )}
       </DialogContent>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) =>
+          setConfirmDialog({ ...confirmDialog, open })
+        }
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        variant="destructive"
+        confirmText="Delete"
+      />
     </Dialog>
   );
 }

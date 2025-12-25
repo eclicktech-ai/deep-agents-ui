@@ -46,10 +46,11 @@ export function FAQForm({ items, onAdd, onUpdate, onDelete }: FAQFormProps) {
                 </span>
                 <Input
                   placeholder="What is your question?"
-                  value={faq.extra?.question || faq.title || ""}
+                  value={faq.extra?.question || faq.extra?.title || faq.title || ""}
                   onChange={(e) =>
                     onUpdate(idx, {
-                      extra: { ...faq.extra, question: e.target.value },
+                      extra: { ...faq.extra, question: e.target.value, title: e.target.value },
+                      title: e.target.value,
                     })
                   }
                   className="text-sm font-medium"
@@ -69,10 +70,10 @@ export function FAQForm({ items, onAdd, onUpdate, onDelete }: FAQFormProps) {
                 </span>
                 <Textarea
                   placeholder="Your answer..."
-                  value={faq.extra?.answer || faq.description || ""}
+                  value={faq.extra?.answer || faq.extra?.description || faq.description || ""}
                   onChange={(e) =>
                     onUpdate(idx, {
-                      extra: { ...faq.extra, answer: e.target.value },
+                      extra: { ...faq.extra, answer: e.target.value, description: e.target.value },
                       description: e.target.value,
                     })
                   }

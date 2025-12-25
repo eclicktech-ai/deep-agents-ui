@@ -1021,11 +1021,15 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                 (contextData.onSite.websiteContent || [])
                   .filter((c: any) => c.type === "faq")
                   .map((item: any) => (
-                    <div key={item.id} className="p-3 border rounded-lg bg-muted/30">
-                      <div className="text-sm font-medium">{item.name}</div>
+                    <div key={item.id} className="p-3 border rounded-lg bg-muted/30 space-y-1">
+                      {item.name && (
+                        <div className="text-sm font-medium text-foreground">
+                          Q: {item.name}
+                        </div>
+                      )}
                       {item.description && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {item.description}
+                        <div className="text-xs text-muted-foreground">
+                          A: {item.description}
                         </div>
                       )}
                     </div>

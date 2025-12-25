@@ -8,6 +8,7 @@ export { ContactInfoForm } from "./ContactInfoForm";
 export { FAQForm } from "./FAQForm";
 export { CreatorsForm } from "./CreatorsForm";
 export { CoverageForm } from "./CoverageForm";
+export { ProductsServicesForm } from "./ProductsServicesForm";
 // 通用组件
 export { SimpleItemListForm } from "./SimpleItemListForm";
 export { PlatformSelectForm } from "./PlatformSelectForm";

@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 import type { ContextItem } from "@/lib/api/client";
 
@@ -36,7 +43,7 @@ export function CoverageForm({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" lang="en">
       <div className="flex items-center justify-between">
         <Label className="text-xs text-muted-foreground">
           {label} {items.length > 0 && <span>({items.length})</span>}
@@ -143,29 +150,100 @@ export function CoverageForm({
                         rows={2}
                       />
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground mb-1 block">
-                        Extra (JSON)
+                        Additional Details
                       </Label>
-                      <Textarea
-                        placeholder="{}"
-                        value={
-                          item.extra
-                            ? JSON.stringify(item.extra, null, 2)
-                            : "{}"
-                        }
-                        onChange={(e) => {
-                          try {
-                            const parsed = JSON.parse(e.target.value || "{}");
-                            onUpdate(idx, { extra: parsed });
-                          } catch {
-                            // Invalid JSON, but still update the text
-                            // The user can fix it later
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">
+                          Type
+                        </Label>
+                        <Select
+                          value={
+                            (item.extra as any)?.type || "media_coverage"
                           }
-                        }}
-                        className="text-xs font-mono min-h-[60px]"
-                        rows={3}
-                      />
+                          onValueChange={(value) => {
+                            onUpdate(idx, {
+                              extra: {
+                                ...(item.extra as any),
+                                type: value,
+                              },
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="text-xs h-8">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="press_release">
+                              Press Release
+                            </SelectItem>
+                            <SelectItem value="media_coverage">
+                              Media Coverage
+                            </SelectItem>
+                            <SelectItem value="interview">Interview</SelectItem>
+                            <SelectItem value="news_mention">
+                              News Mention
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">
+                          Publication
+                        </Label>
+                        <Input
+                          placeholder="Publication name..."
+                          value={(item.extra as any)?.publication || ""}
+                          onChange={(e) =>
+                            onUpdate(idx, {
+                              extra: {
+                                ...(item.extra as any),
+                                publication: e.target.value,
+                              },
+                            })
+                          }
+                          className="text-xs h-8"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">
+                          Publish Date
+                        </Label>
+                        <Input
+                          type="date"
+                          lang="en"
+                          value={(item.extra as any)?.date || ""}
+                          onChange={(e) =>
+                            onUpdate(idx, {
+                              extra: {
+                                ...(item.extra as any),
+                                date: e.target.value,
+                              },
+                            })
+                          }
+                          className="text-xs h-8"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">
+                          Snippet
+                        </Label>
+                        <Textarea
+                          placeholder="Brief summary or snippet..."
+                          value={(item.extra as any)?.snippet || ""}
+                          onChange={(e) =>
+                            onUpdate(idx, {
+                              extra: {
+                                ...(item.extra as any),
+                                snippet: e.target.value,
+                              },
+                            })
+                          }
+                          className="text-xs min-h-[60px]"
+                          rows={3}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

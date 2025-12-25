@@ -288,10 +288,10 @@ export function mapApiResponseToContextData(apiResponse: ContextApiResponse): Co
       // FAQs
       ...(onsite.items?.faqs || []).map((faq: any) => ({
         id: uuidv4(),
-        name: faq.question || faq.extra?.question || "",
+        name: faq.title || faq.extra?.title || faq.extra?.question || faq.question || "",
         url: "",
         type: "faq" as const,
-        description: faq.answer || faq.extra?.answer || faq.description || "",
+        description: faq.description || faq.extra?.description || faq.extra?.answer || faq.answer || "",
       })),
       // Contact Info
       ...(ensureString((brand as any)?.contact?.email || contactInfoSingleton?.email) ? [{

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Sun, Moon, LogOut, User, RotateCcw } from "lucide-react";
+import { Sun, Moon, LogOut, User, ArrowLeft } from "lucide-react";
 import { ChatProvider, useChatContext } from "@/providers/ChatProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { useContextMenu } from "@/providers/ContextProvider";
@@ -299,14 +299,36 @@ function AuthenticatedHome() {
               height={28}
               priority
             />
-            <h1 className="text-base font-semibold text-foreground">SeenOS</h1>
+            <h1 className="text-base font-semibold text-foreground">
+              Seen
+              <span className="relative inline-block">
+                <span className="relative inline-flex items-center justify-center">
+                  o
+                </span>
+              </span>
+              S
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             {/* User Info */}
             {user && (
               <div className="mr-2 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <User size={16} />
+                  {/* Santa Hat */}
+                  <img
+                    src="/santahat.png"
+                    alt="Santa Hat"
+                    className="absolute left-1/2 z-10 pointer-events-none"
+                    style={{
+                      background: 'transparent',
+                      top: '0.25em',
+                      width: '0.45em',
+                      height: 'auto',
+                      transform: 'translateX(10%) scale(1.5) rotate(24deg)',
+                      transformOrigin: 'center top',
+                    }}
+                  />
                 </div>
                 <span className="text-sm text-muted-foreground">{user.name || user.email}</span>
               </div>
@@ -317,7 +339,7 @@ function AuthenticatedHome() {
               className="rounded-md p-2 hover:bg-accent"
               title="Back to Onboarding"
             >
-              <RotateCcw size={18} className="text-muted-foreground" />
+              <ArrowLeft size={18} className="text-muted-foreground" />
             </button>
             <button
               onClick={toggleTheme}

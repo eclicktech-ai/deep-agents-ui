@@ -29,6 +29,7 @@ import {
   validateAndFetchModels,
 } from "@/lib/config";
 import { CheckCircle, XCircle, Loader2, Link, Key, Cpu, ExternalLink, Power, Wrench } from "lucide-react";
+import { toast } from "sonner";
 
 interface ConfigDialogProps {
   open: boolean;
@@ -685,11 +686,13 @@ export function ConfigDialog({
         setIsBackendRunning(true);
       } else {
         console.warn("[CONFIG] Failed to start/restart backend:", data.message);
-        alert(data.message || "Failed to start backend. Please start manually.");
+        toast.error(data.message || "Failed to start backend. Please start manually.");
       }
     } catch (error) {
       console.error("[CONFIG] Error triggering restart:", error);
-      alert("Failed to start backend. Please start manually:\ncd deepagents && source .venv/bin/activate && langgraph dev --port 2024");
+      toast.error("Failed to start backend. Please start manually", {
+        description: "cd deepagents && source .venv/bin/activate && langgraph dev --port 2024",
+      });
     } finally {
       setIsRestarting(false);
     }
@@ -697,7 +700,7 @@ export function ConfigDialog({
 
   const handleSave = async () => {
     if (!deploymentUrl || !assistantId) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
