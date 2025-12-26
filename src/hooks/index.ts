@@ -9,4 +9,5 @@ export {
   type ConversationItem,
 } from './useConversations';
 export { useSuggestions, type Suggestion } from './useSuggestions';
+export { usePlaybooks } from './usePlaybooks';
 

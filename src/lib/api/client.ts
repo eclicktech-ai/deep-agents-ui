@@ -1027,6 +1027,24 @@ class ApiClient {
   async validateProjectUrl(url: string): Promise<ValidateUrlResponse> {
     return this.post<ValidateUrlResponse>('/projects/validate-url', { url });
   }
+
+  // ============ Playbooks API ============
+
+  /** 获取 Playbooks 列表（按类别分组） */
+  async getPlaybooks(options?: {
+    category?: 'research' | 'build' | 'optimize' | 'monitor';
+    active_only?: boolean;
+  }): Promise<PlaybooksResponse> {
+    const params: Record<string, string> = {};
+    if (options?.category) {
+      // 直接使用小写格式
+      params.category = options.category;
+    }
+    if (options?.active_only !== undefined) {
+      params.active_only = String(options.active_only);
+    }
+    return this.get<PlaybooksResponse>('/playbooks', Object.keys(params).length > 0 ? params : undefined);
+  }
 }
 
 // ============ Context 类型定义 ============
@@ -1424,6 +1442,34 @@ export interface ValidateUrlResponse {
   status_code: number;    // HTTP 状态码
   final_url: string;      // 最终 URL（可能重定向）
   error?: string;         // 错误信息
+}
+
+// ============ Playbooks 类型定义 ============
+
+/** API 返回的 Playbook 数据 */
+export interface ApiPlaybook {
+  id: string;
+  skill_id: string;
+  name: string;
+  description: string;
+  difficulty: string;
+  tags: string[];
+  auto_actions: string[];
+  artifacts: string[];
+  has_configure: boolean;
+  category: string;
+}
+
+/** API 返回的类别分组 */
+export interface PlaybookCategoryGroup {
+  category: string;
+  category_name: string;
+  playbooks: ApiPlaybook[];
+}
+
+/** Playbooks API 响应 */
+export interface PlaybooksResponse {
+  categories: PlaybookCategoryGroup[];
 }
 
 // 导出单例实例

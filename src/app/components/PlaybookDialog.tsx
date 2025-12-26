@@ -12,8 +12,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Play, Zap, CheckCircle2, ArrowLeft, BarChart, Settings2 } from "lucide-react";
-import { Playbook, PlaybookCategory, playbooks } from "@/data/playbooks";
+import { Play, Zap, CheckCircle2, ArrowLeft, BarChart, Settings2, Loader2 } from "lucide-react";
+import { Playbook, PlaybookCategory } from "@/data/playbooks";
+import { usePlaybooks } from "@/hooks/usePlaybooks";
 
 interface PlaybookDialogProps {
   open: boolean;
@@ -51,9 +52,16 @@ export function PlaybookDialog({
     }
   }, [selectedOption, selectedPlaybook]);
 
+  // 获取 playbooks 数据
+  const { playbooks: allPlaybooks, isLoading } = usePlaybooks({
+    category: category || undefined,
+    active_only: true,
+  });
+
   if (!category) return null;
 
-  const filteredPlaybooks = playbooks.filter((p) => p.category === category);
+  // 根据类别过滤 playbooks
+  const filteredPlaybooks = allPlaybooks.filter((p) => p.category === category);
 
   const getCategoryLabel = (cat: PlaybookCategory) => {
     switch (cat) {
@@ -119,7 +127,14 @@ export function PlaybookDialog({
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0 p-6">
-          {selectedPlaybook ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <p className="text-sm">Loading playbooks...</p>
+              </div>
+            </div>
+          ) : selectedPlaybook ? (
             <div className="max-w-3xl mx-auto space-y-8">
               {/* Playbook Info */}
               <div className="space-y-4">
