@@ -75,6 +75,7 @@ export const ChatInterface = React.memo(() => {
     cid,
     startNewChat,
     switchConversation,
+    setCid,
   } = useChatContext();
 
   // Use suggestions hook
@@ -680,6 +681,12 @@ export const ChatInterface = React.memo(() => {
               <ConversationList
                 onSelect={handleConversationSelect}
                 onClose={() => setShowAllChats(false)}
+                onDeleteSuccess={async () => {
+                  // Clear chat content
+                  if (setCid) {
+                    await setCid(null);
+                  }
+                }}
               />
             </div>
           </div>

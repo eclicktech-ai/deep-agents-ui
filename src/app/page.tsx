@@ -315,20 +315,7 @@ function AuthenticatedHome() {
               <div className="mr-2 flex items-center gap-2">
                 <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <User size={16} />
-                  {/* Santa Hat */}
-                  <img
-                    src="/santahat.png"
-                    alt="Santa Hat"
-                    className="absolute left-1/2 z-10 pointer-events-none"
-                    style={{
-                      background: 'transparent',
-                      top: '0.25em',
-                      width: '0.45em',
-                      height: 'auto',
-                      transform: 'translateX(10%) scale(1.5) rotate(24deg)',
-                      transformOrigin: 'center top',
-                    }}
-                  />
+                 
                 </div>
                 <span className="text-sm text-muted-foreground">{user.name || user.email}</span>
               </div>

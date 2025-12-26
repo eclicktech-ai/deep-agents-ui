@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { Loader2, MessageSquare, X, Trash2, Pencil, Check } from "lucide-react";
 import { useQueryState } from "nuqs";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { useConversations, type ConversationItem, useDeleteConversation } from "@/hooks/useConversations";
 import { useAuth } from "@/providers/AuthProvider";
@@ -111,22 +113,27 @@ interface ConversationListProps {
   onSelect: (cid: string) => void;
   onMutateReady?: (mutate: () => void) => void;
   onClose?: () => void;
+  onDeleteSuccess?: () => void;
 }
 
 export function ConversationList({
   onSelect,
   onMutateReady,
   onClose,
+  onDeleteSuccess,
 }: ConversationListProps) {
   const [currentCid] = useQueryState("cid");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   
   // 编辑标题状态
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [isSavingTitle, setIsSavingTitle] = useState(false);
   const editInputRef = useRef<HTMLInputElement>(null);
+
+  const router = useRouter();
 
   // 从 AuthProvider 获取认证状态
   const { token, isAuthenticated } = useAuth();
@@ -209,23 +216,38 @@ export function ConversationList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle delete
+  // Handle delete - 显示确认对话框
   const handleDelete = useCallback(
-    async (e: React.MouseEvent, cid: string) => {
+    (e: React.MouseEvent, cid: string) => {
       e.stopPropagation();
-      if (deletingId) return;
+      setConfirmDeleteId(cid);
+    },
+    []
+  );
 
-      setDeletingId(cid);
+  // 确认删除
+  const handleConfirmDelete = useCallback(
+    async () => {
+      if (!confirmDeleteId || deletingId) return;
+
+      setDeletingId(confirmDeleteId);
       try {
-        await deleteConversation(cid);
+        await deleteConversation(confirmDeleteId);
         mutate();
+        // 关闭弹出框
+        onClose?.();
+        // 清空聊天内容
+        onDeleteSuccess?.();
+        // 删除后导航到首页
+        router.push("/");
       } catch (error) {
         console.error("Failed to delete conversation:", error);
       } finally {
         setDeletingId(null);
+        setConfirmDeleteId(null);
       }
     },
-    [deletingId, deleteConversation, mutate]
+    [confirmDeleteId, deletingId, deleteConversation, mutate, router, onClose, onDeleteSuccess]
   );
 
   // Handle edit title
@@ -289,8 +311,23 @@ export function ConversationList({
   );
 
   return (
-    <div className="absolute inset-0 flex flex-col">
-      {/* Header */}
+    <>
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmDeleteId(null);
+          }
+        }}
+        title="Delete Conversation"
+        description="Are you sure you want to delete this conversation? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        variant="destructive"
+      />
+      <div className="absolute inset-0 flex flex-col">
+        {/* Header */}
       <div className="grid flex-shrink-0 grid-cols-[1fr_auto] items-center gap-3 border-b border-border p-4">
         <h2 className="text-lg font-semibold tracking-tight text-foreground">Conversations</h2>
         <div className="flex items-center gap-2">
@@ -530,5 +567,6 @@ export function ConversationList({
         )}
       </ScrollArea>
     </div>
+    </>
   );
 }

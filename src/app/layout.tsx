@@ -9,6 +9,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "SeenOS",
   description: "AI-powered agent interface - Intelligent automation platform",
+  robots: {
+    index: false,
+    follow: false,
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
