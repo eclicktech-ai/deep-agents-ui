@@ -3,7 +3,12 @@
  * Defines form fields for each skill based on their agentName or skill_id
  */
 
-export type FormFieldType = 'text' | 'textarea' | 'url' | 'urls';
+export type FormFieldType = 'text' | 'textarea' | 'url' | 'urls' | 'select';
+
+export interface SelectOption {
+  label: string;
+  value: string;
+}
 
 export interface FormField {
   key: string;
@@ -13,6 +18,8 @@ export interface FormField {
   required: boolean;
   autoFill?: 'domain' | 'competitorDomains' | 'niche'; // Which field to auto-fill from project/context
   helpText?: string;
+  options?: SelectOption[]; // For select type fields
+  defaultValue?: string; // Default value for select fields
 }
 
 export interface SkillFormConfig {
@@ -58,19 +65,54 @@ export const skillFormConfigs: Record<string, SkillFormConfig> = {
   'serp-analysis': {
     fields: [
       {
-        key: 'targetUrl',
-        label: 'Target Website URL',
-        type: 'url',
-        placeholder: 'e.g., example.com',
+        key: 'targetKeyword',
+        label: 'Target Keyword',
+        type: 'text',
+        placeholder: 'e.g. best running shoes',
         required: true,
-        autoFill: 'domain',
+        helpText: 'e.g. best running shoes',
       },
       {
-        key: 'keywords',
-        label: 'Keywords to Analyze (Optional)',
+        key: 'resultsToAnalyze',
+        label: 'Results to Analyze',
+        type: 'select',
+        placeholder: 'Select number of results',
+        required: true,
+        defaultValue: 'top-3',
+        options: [
+          { label: 'Top 3 (Fast)', value: 'top-3' },
+          { label: 'Top 5', value: 'top-5' },
+          { label: 'Top 10', value: 'top-10' },
+        ],
+        helpText: 'Default: Top 3 (Fast)',
+      },
+    ],
+  },
+  
+  // SERP Analyst (alternative name)
+  'serp-analyst': {
+    fields: [
+      {
+        key: 'targetKeyword',
+        label: 'Target Keyword',
         type: 'text',
-        placeholder: 'e.g., best project management tools, agile software',
-        required: false,
+        placeholder: 'e.g. best running shoes',
+        required: true,
+        helpText: 'e.g. best running shoes',
+      },
+      {
+        key: 'resultsToAnalyze',
+        label: 'Results to Analyze',
+        type: 'select',
+        placeholder: 'Select number of results',
+        required: true,
+        defaultValue: 'top-3',
+        options: [
+          { label: 'Top 3 (Fast)', value: 'top-3' },
+          { label: 'Top 5', value: 'top-5' },
+          { label: 'Top 10', value: 'top-10' },
+        ],
+        helpText: 'Default: Top 3 (Fast)',
       },
     ],
   },
@@ -79,27 +121,90 @@ export const skillFormConfigs: Record<string, SkillFormConfig> = {
   'competitor-analysis': {
     fields: [
       {
-        key: 'targetUrl',
-        label: 'Target Website URL',
+        key: 'productName',
+        label: 'Your Product Name',
+        type: 'text',
+        placeholder: 'e.g., Your Company Name',
+        required: true,
+        helpText: 'e.g., Your Company Name',
+      },
+      {
+        key: 'websiteUrl',
+        label: 'Your Website URL',
         type: 'url',
-        placeholder: 'e.g., example.com',
+        placeholder: 'https://example.com',
         required: true,
         autoFill: 'domain',
       },
       {
+        key: 'productDescription',
+        label: 'Product Description (Optional)',
+        type: 'textarea',
+        placeholder: 'Brief description of what your product or service does...',
+        required: false,
+        helpText: 'Brief description of what your product or service does...',
+      },
+      {
+        key: 'knownCompetitors',
+        label: 'Known Competitors (Optional)',
+        type: 'text',
+        placeholder: 'Competitor A, Competitor B, Competitor C',
+        required: false,
+        helpText: 'Competitor A, Competitor B, Competitor C',
+      },
+      {
         key: 'competitorUrls',
-        label: 'Competitor URLs (Optional, Comma-separated)',
+        label: 'Competitor URLs (Optional)',
         type: 'urls',
-        placeholder: 'e.g., competitor1.com, competitor2.com',
+        placeholder: 'https://competitor1.com, https://competitor2.com',
         required: false,
         autoFill: 'competitorDomains',
       },
+    ],
+  },
+  
+  // Competitor Analyst (alternative name)
+  'competitor-analyst': {
+    fields: [
       {
-        key: 'analysisFocus',
-        label: 'Analysis Focus (Optional)',
+        key: 'productName',
+        label: 'Your Product Name',
         type: 'text',
-        placeholder: 'e.g., pricing, features, market positioning',
+        placeholder: 'e.g., Your Company Name',
+        required: true,
+        helpText: 'e.g., Your Company Name',
+      },
+      {
+        key: 'websiteUrl',
+        label: 'Your Website URL',
+        type: 'url',
+        placeholder: 'https://example.com',
+        required: true,
+        autoFill: 'domain',
+      },
+      {
+        key: 'productDescription',
+        label: 'Product Description (Optional)',
+        type: 'textarea',
+        placeholder: 'Brief description of what your product or service does...',
         required: false,
+        helpText: 'Brief description of what your product or service does...',
+      },
+      {
+        key: 'knownCompetitors',
+        label: 'Known Competitors (Optional)',
+        type: 'text',
+        placeholder: 'Competitor A, Competitor B, Competitor C',
+        required: false,
+        helpText: 'Competitor A, Competitor B, Competitor C',
+      },
+      {
+        key: 'competitorUrls',
+        label: 'Competitor URLs (Optional)',
+        type: 'urls',
+        placeholder: 'https://competitor1.com, https://competitor2.com',
+        required: false,
+        autoFill: 'competitorDomains',
       },
     ],
   },
@@ -109,27 +214,38 @@ export const skillFormConfigs: Record<string, SkillFormConfig> = {
     fields: [
       {
         key: 'targetUrl',
-        label: 'Target Website URL',
+        label: 'Your Website URL',
         type: 'url',
         placeholder: 'e.g., example.com',
         required: true,
         autoFill: 'domain',
       },
       {
-        key: 'competitorUrls',
-        label: 'Competitor URLs (Optional, Comma-separated)',
-        type: 'urls',
-        placeholder: 'e.g., competitor1.com, competitor2.com',
+        key: 'specificCompetitors',
+        label: 'Specific Competitors (Optional)',
+        type: 'text',
+        placeholder: 'Leave blank to let AI discover them automatically',
         required: false,
+        helpText: 'Leave blank to let AI discover them automatically',
         autoFill: 'competitorDomains',
       },
       {
-        key: 'niche',
-        label: 'Niche / Industry Focus (Optional)',
-        type: 'text',
-        placeholder: 'e.g., SaaS, E-commerce, Healthcare',
-        required: false,
-        autoFill: 'niche',
+        key: 'targetMarket',
+        label: 'Target Market',
+        type: 'select',
+        placeholder: 'Select target market',
+        required: true,
+        defaultValue: 'us',
+        options: [
+          { label: 'United States (US)', value: 'us' },
+          { label: 'United Kingdom (UK)', value: 'uk' },
+          { label: 'Canada', value: 'ca' },
+          { label: 'Australia', value: 'au' },
+          { label: 'Germany', value: 'de' },
+          { label: 'France', value: 'fr' },
+          { label: 'Global', value: 'global' },
+        ],
+        helpText: 'Default: United States (US)',
       },
     ],
   },
@@ -168,27 +284,307 @@ export const skillFormConfigs: Record<string, SkillFormConfig> = {
     fields: [
       {
         key: 'targetUrl',
-        label: 'Target Website URL',
+        label: 'Your Website URL',
         type: 'url',
         placeholder: 'e.g., example.com',
         required: true,
         autoFill: 'domain',
       },
       {
-        key: 'competitorUrls',
-        label: 'Competitor URLs (Optional, Comma-separated)',
-        type: 'urls',
-        placeholder: 'e.g., competitor1.com, competitor2.com',
+        key: 'specificCompetitors',
+        label: 'Specific Competitors (Optional)',
+        type: 'text',
+        placeholder: 'Leave blank to let AI discover them automatically',
         required: false,
+        helpText: 'Leave blank to let AI discover them automatically',
         autoFill: 'competitorDomains',
       },
       {
-        key: 'niche',
-        label: 'Niche / Industry Focus (Optional)',
+        key: 'targetMarket',
+        label: 'Target Market',
+        type: 'select',
+        placeholder: 'Select target market',
+        required: true,
+        defaultValue: 'us',
+        options: [
+          { label: 'United States (US)', value: 'us' },
+          { label: 'United Kingdom (UK)', value: 'uk' },
+          { label: 'Canada', value: 'ca' },
+          { label: 'Australia', value: 'au' },
+          { label: 'Germany', value: 'de' },
+          { label: 'France', value: 'fr' },
+          { label: 'Global', value: 'global' },
+        ],
+        helpText: 'Default: United States (US)',
+      },
+    ],
+  },
+
+  // Topic Brainstorm
+  'topic-brainstorm': {
+    fields: [
+      {
+        key: 'siteGoals',
+        label: 'Site Goals / Target Audience',
+        type: 'textarea',
+        placeholder: 'e.g. Selling SaaS for SEO agencies or Growing a travel blog',
+        required: true,
+        helpText: 'e.g. Selling SaaS for SEO agencies or Growing a travel blog',
+      },
+      {
+        key: 'seedTopics',
+        label: 'Seed Topics or Keywords (Optional)',
         type: 'text',
-        placeholder: 'e.g., SaaS, E-commerce, Healthcare',
+        placeholder: 'e.g. "AI productivity", "Local SEO". Leave blank if you want AI to suggest everything.',
         required: false,
-        autoFill: 'niche',
+        helpText: 'e.g. "AI productivity", "Local SEO". Leave blank if you want AI to suggest everything.',
+      },
+    ],
+  },
+
+  // Page Planner
+  'page-planner': {
+    fields: [
+      {
+        key: 'clusterTopic',
+        label: 'Cluster Topic / Theme',
+        type: 'text',
+        placeholder: 'e.g. "AI Humanizer Tools" or "Remote Work Security"',
+        required: true,
+        helpText: 'e.g. "AI Humanizer Tools" or "Remote Work Security"',
+      },
+      {
+        key: 'siteContext',
+        label: 'Site Context / Goal (Optional)',
+        type: 'text',
+        placeholder: 'e.g. Selling a B2B SaaS or Growing an affiliate site',
+        required: false,
+        helpText: 'e.g. Selling a B2B SaaS or Growing an affiliate site',
+      },
+    ],
+  },
+
+  // SEO Blog Writer - No specific input required
+  'seo-blog-writer': {
+    fields: [],
+  },
+
+  // Landing Page Writer - No specific input required
+  'landing-page-writer': {
+    fields: [],
+  },
+
+  // Comparison Writer - No specific input required
+  'comparison-writer': {
+    fields: [],
+  },
+
+  // Guide Writer - No specific input required
+  'guide-writer': {
+    fields: [],
+  },
+
+  // Listicle Writer - No specific input required
+  'listicle-writer': {
+    fields: [],
+  },
+
+  // Internal Linking Optimizer
+  'internal-linking-optimizer': {
+    fields: [
+      {
+        key: 'pageToOptimize',
+        label: 'PAGE TO OPTIMIZE (URL)',
+        type: 'url',
+        placeholder: 'e.g., https://example.com/blog/my-post',
+        required: true,
+        autoFill: 'domain',
+      },
+      {
+        key: 'siteHomepage',
+        label: 'SITE HOMEPAGE (FOR SITEMAP)',
+        type: 'url',
+        placeholder: 'e.g., https://example.com',
+        required: true,
+        autoFill: 'domain',
+      },
+    ],
+  },
+
+  // Meta Tags Optimizer
+  'meta-tags-optimizer': {
+    fields: [
+      {
+        key: 'pageUrl',
+        label: 'PAGE URL',
+        type: 'url',
+        placeholder: 'https://example.com/page-to-optimize',
+        required: true,
+        autoFill: 'domain',
+      },
+      {
+        key: 'targetKeyword',
+        label: 'Target Keyword (Optional)',
+        type: 'text',
+        placeholder: 'e.g., ai seo agent',
+        required: false,
+        helpText: 'e.g., ai seo agent',
+      },
+    ],
+  },
+
+  // Schema Markup Generator
+  'schema-markup-generator': {
+    fields: [
+      {
+        key: 'pageUrl',
+        label: 'PAGE URL',
+        type: 'url',
+        placeholder: 'https://example.com/page-to-audit',
+        required: true,
+        autoFill: 'domain',
+      },
+      {
+        key: 'targetKeyword',
+        label: 'Target Keyword (Optional)',
+        type: 'text',
+        placeholder: 'e.g., how to fix leaky faucet',
+        required: false,
+        helpText: 'e.g., how to fix leaky faucet',
+      },
+    ],
+  },
+
+  // GEO Content Optimizer - No specific input required
+  'geo-content-optimizer': {
+    fields: [],
+  },
+
+  // GEO Auditor
+  'geo-auditor': {
+    fields: [
+      {
+        key: 'pageUrl',
+        label: 'PAGE URL',
+        type: 'url',
+        placeholder: 'https://example.com/page-to-audit',
+        required: true,
+        autoFill: 'domain',
+      },
+    ],
+  },
+
+  // Technical SEO Checker
+  'technical-seo-checker': {
+    fields: [
+      {
+        key: 'targetUrl',
+        label: 'TARGET URL',
+        type: 'url',
+        placeholder: 'https://example.com/page-to-check',
+        required: true,
+        autoFill: 'domain',
+      },
+    ],
+  },
+
+  // SEO Auditor
+  'seo-auditor': {
+    fields: [
+      {
+        key: 'pageUrl',
+        label: 'PAGE URL',
+        type: 'url',
+        placeholder: 'https://example.com/page-to-audit',
+        required: true,
+        autoFill: 'domain',
+      },
+    ],
+  },
+
+  // Backlink Analyzer
+  'backlink-analyzer': {
+    fields: [
+      {
+        key: 'domainOrUrl',
+        label: 'DOMAIN OR URL',
+        type: 'url',
+        placeholder: 'e.g., example.com',
+        required: true,
+        autoFill: 'domain',
+      },
+    ],
+  },
+
+  // Alert Manager
+  'alert-manager': {
+    fields: [
+      {
+        key: 'siteUrl',
+        label: 'SITE URL',
+        type: 'url',
+        placeholder: 'sc-domain:example.com',
+        required: true,
+        autoFill: 'domain',
+      },
+      {
+        key: 'specificUrls',
+        label: 'Specific URLs to Check Indexing (Optional)',
+        type: 'urls',
+        placeholder: 'e.g., https://example.com/page-1, https://example.com/page-2',
+        required: false,
+        helpText: 'e.g., https://example.com/page-1, https://example.com/page-2',
+      },
+    ],
+  },
+
+  // Performance Reporter
+  'performance-reporter': {
+    fields: [
+      {
+        key: 'siteUrl',
+        label: 'SITE URL',
+        type: 'url',
+        placeholder: 'sc-domain:example.com',
+        required: true,
+        autoFill: 'domain',
+      },
+      {
+        key: 'reportPeriod',
+        label: 'REPORT PERIOD',
+        type: 'select',
+        placeholder: 'Select report period',
+        required: true,
+        defaultValue: 'last-28-days',
+        options: [
+          { label: 'Last 7 Days', value: 'last-7-days' },
+          { label: 'Last 28 Days', value: 'last-28-days' },
+          { label: 'Last 90 Days', value: 'last-90-days' },
+          { label: 'Last 12 Months', value: 'last-12-months' },
+        ],
+        helpText: 'Default: Last 28 Days',
+      },
+    ],
+  },
+
+  // Rank Tracker
+  'rank-tracker': {
+    fields: [
+      {
+        key: 'siteUrl',
+        label: 'SITE URL',
+        type: 'url',
+        placeholder: 'sc-domain.example.com',
+        required: true,
+        autoFill: 'domain',
+      },
+      {
+        key: 'targetKeywords',
+        label: 'Target Keywords (Optional)',
+        type: 'text',
+        placeholder: 'e.g., your product, your service',
+        required: false,
+        helpText: 'e.g., your product, your service',
       },
     ],
   },
@@ -314,19 +710,113 @@ export function getSkillFormConfig(
     return skillFormConfigs['keyword-research'];
   }
   
-  // Special case: if name contains "serp" and "analysis", match to serp-analysis
-  if (searchText.includes('serp') && searchText.includes('analysis')) {
-    return skillFormConfigs['serp-analysis'];
+  // Special case: if name contains "serp" and "analysis" or "analyst", match to serp-analysis
+  if (searchText.includes('serp')) {
+    if (searchText.includes('analysis') || searchText.includes('analyst')) {
+      return skillFormConfigs['serp-analysis'] || skillFormConfigs['serp-analyst'];
+    }
   }
   
-  // Special case: if name contains "competitor" and "analysis", match to competitor-analysis
-  if (searchText.includes('competitor') && searchText.includes('analysis')) {
-    return skillFormConfigs['competitor-analysis'];
+  // Special case: if name contains "competitor" and "analysis" or "analyst", match to competitor-analysis
+  if (searchText.includes('competitor')) {
+    if (searchText.includes('analysis') || searchText.includes('analyst')) {
+      return skillFormConfigs['competitor-analysis'] || skillFormConfigs['competitor-analyst'];
+    }
   }
   
   // Special case: if name contains "content" and "gap", match to content-gap-analysis
   if (searchText.includes('content') && searchText.includes('gap')) {
     return skillFormConfigs['content-gap-analysis'] || skillFormConfigs['gap-analysis'];
+  }
+  
+  // Special case: if name contains "topic" and "brainstorm", match to topic-brainstorm
+  if (searchText.includes('topic') && searchText.includes('brainstorm')) {
+    return skillFormConfigs['topic-brainstorm'];
+  }
+  
+  // Special case: if name contains "page" and "planner", match to page-planner
+  if (searchText.includes('page') && searchText.includes('planner')) {
+    return skillFormConfigs['page-planner'];
+  }
+  
+  // Special case: if name contains "seo" and "blog" and "writer", match to seo-blog-writer
+  if (searchText.includes('seo') && searchText.includes('blog') && searchText.includes('writer')) {
+    return skillFormConfigs['seo-blog-writer'];
+  }
+  
+  // Special case: if name contains "landing" and "page" and "writer", match to landing-page-writer
+  if (searchText.includes('landing') && searchText.includes('page') && searchText.includes('writer')) {
+    return skillFormConfigs['landing-page-writer'];
+  }
+  
+  // Special case: if name contains "comparison" and "writer", match to comparison-writer
+  if (searchText.includes('comparison') && searchText.includes('writer')) {
+    return skillFormConfigs['comparison-writer'];
+  }
+  
+  // Special case: if name contains "guide" and "writer", match to guide-writer
+  if (searchText.includes('guide') && searchText.includes('writer')) {
+    return skillFormConfigs['guide-writer'];
+  }
+  
+  // Special case: if name contains "listicle" and "writer", match to listicle-writer
+  if (searchText.includes('listicle') && searchText.includes('writer')) {
+    return skillFormConfigs['listicle-writer'];
+  }
+  
+  // Special case: if name contains "internal" and "linking", match to internal-linking-optimizer
+  if (searchText.includes('internal') && searchText.includes('linking')) {
+    return skillFormConfigs['internal-linking-optimizer'];
+  }
+  
+  // Special case: if name contains "meta" and "tags", match to meta-tags-optimizer
+  if (searchText.includes('meta') && searchText.includes('tags')) {
+    return skillFormConfigs['meta-tags-optimizer'];
+  }
+  
+  // Special case: if name contains "schema" and "markup", match to schema-markup-generator
+  if (searchText.includes('schema') && searchText.includes('markup')) {
+    return skillFormConfigs['schema-markup-generator'];
+  }
+  
+  // Special case: if name contains "geo" and "content", match to geo-content-optimizer
+  if (searchText.includes('geo') && searchText.includes('content')) {
+    return skillFormConfigs['geo-content-optimizer'];
+  }
+  
+  // Special case: if name contains "geo" and "auditor", match to geo-auditor
+  if (searchText.includes('geo') && searchText.includes('auditor')) {
+    return skillFormConfigs['geo-auditor'];
+  }
+  
+  // Special case: if name contains "technical" and "seo", match to technical-seo-checker
+  if (searchText.includes('technical') && searchText.includes('seo')) {
+    return skillFormConfigs['technical-seo-checker'];
+  }
+  
+  // Special case: if name contains "seo" and "auditor" (but not "geo"), match to seo-auditor
+  if (searchText.includes('seo') && searchText.includes('auditor') && !searchText.includes('geo')) {
+    return skillFormConfigs['seo-auditor'];
+  }
+  
+  // Special case: if name contains "backlink" and "analyzer", match to backlink-analyzer
+  if (searchText.includes('backlink') && searchText.includes('analyzer')) {
+    return skillFormConfigs['backlink-analyzer'];
+  }
+  
+  // Special case: if name contains "alert" and "manager", match to alert-manager
+  if (searchText.includes('alert') && searchText.includes('manager')) {
+    return skillFormConfigs['alert-manager'];
+  }
+  
+  // Special case: if name contains "performance" and "reporter", match to performance-reporter
+  if (searchText.includes('performance') && searchText.includes('reporter')) {
+    return skillFormConfigs['performance-reporter'];
+  }
+  
+  // Special case: if name contains "rank" and "tracker", match to rank-tracker
+  if (searchText.includes('rank') && searchText.includes('tracker')) {
+    return skillFormConfigs['rank-tracker'];
   }
   
   // Return default config for skills without specific configuration

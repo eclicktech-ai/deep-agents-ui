@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Play, Zap, CheckCircle2, ArrowLeft, BarChart, Settings2, Loader2 } from "lucide-react";
 import { Playbook, PlaybookCategory } from "@/data/playbooks";
 import { usePlaybooks } from "@/hooks/usePlaybooks";
@@ -182,6 +189,9 @@ export function PlaybookDialog({
             } else {
               initialData[field.key] = '';
             }
+          } else if (field.type === 'select' && field.defaultValue) {
+            // For select fields, use defaultValue if provided
+            initialData[field.key] = field.defaultValue;
           } else {
             // For fields without autoFill, start with empty
             initialData[field.key] = '';
@@ -202,8 +212,13 @@ export function PlaybookDialog({
               if (!merged[field.key] || merged[field.key].trim() === '') {
                 merged[field.key] = initialData[field.key];
               }
+            } else if (field.type === 'select' && field.defaultValue) {
+              // For select fields with defaultValue, set it if not already set or if empty
+              if (!merged[field.key] || merged[field.key].trim() === '') {
+                merged[field.key] = initialData[field.key];
+              }
             } else {
-              // Keep user input for non-autoFill fields
+              // Keep user input for non-autoFill fields, but initialize if not set
               if (!merged[field.key]) {
                 merged[field.key] = initialData[field.key];
               }
@@ -220,7 +235,7 @@ export function PlaybookDialog({
     }
   }, [selectedPlaybook, onboardingDomain, competitorDomains, hasCompetitorData, nicheIndustry, hasNicheIndustry]);
 
-  // 获取 playbooks 数据
+  // Get playbooks data
   const { playbooks: allPlaybooks, isLoading } = usePlaybooks({
     category: category || undefined,
     active_only: true,
@@ -228,7 +243,7 @@ export function PlaybookDialog({
 
   if (!category) return null;
 
-  // 根据类别过滤 playbooks
+  // Filter playbooks by category
   const filteredPlaybooks = allPlaybooks.filter((p) => p.category === category);
 
   const getCategoryLabel = (cat: PlaybookCategory) => {
@@ -272,7 +287,7 @@ export function PlaybookDialog({
   };
 
   const renderFormField = (field: FormField) => {
-    const value = formData[field.key] || '';
+    const value = formData[field.key] || (field.type === 'select' && field.defaultValue ? field.defaultValue : '');
     
     if (field.type === 'textarea') {
       return (
@@ -289,6 +304,36 @@ export function PlaybookDialog({
             className="min-h-[80px]"
             required={field.required}
           />
+          {field.helpText && (
+            <p className="text-xs text-muted-foreground">{field.helpText}</p>
+          )}
+        </div>
+      );
+    }
+    
+    if (field.type === 'select') {
+      return (
+        <div key={field.key} className="space-y-2">
+          <Label htmlFor={field.key} className="text-sm font-medium">
+            {field.label}
+            {field.required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Select
+            value={value}
+            onValueChange={(newValue) => handleFormFieldChange(field.key, newValue)}
+            required={field.required}
+          >
+            <SelectTrigger id={field.key}>
+              <SelectValue placeholder={field.placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {field.helpText && (
             <p className="text-xs text-muted-foreground">{field.helpText}</p>
           )}
@@ -314,7 +359,7 @@ export function PlaybookDialog({
           {field.helpText && (
             <p className="text-xs text-muted-foreground">{field.helpText}</p>
           )}
-          {field.autoFill && (
+          {field.autoFill && (field.autoFill === 'domain' ? hasOnboardingDomain : hasCompetitorData) && (
             <p className="text-xs text-muted-foreground">
               Auto-fill: The system will use the website configured during your Onboarding as the default value
             </p>
@@ -500,8 +545,27 @@ export function PlaybookDialog({
                      selectedPlaybook.tags
                    );
                    
-                   // Always show form if config exists and has fields
-                   if (formConfig && formConfig.fields.length > 0) {
+                   // Always show form section
+                   if (formConfig) {
+                     // If no fields, show "No specific input required"
+                     if (formConfig.fields.length === 0) {
+                       return (
+                         <div className="space-y-4">
+                           <label className="text-sm font-medium">
+                             Expected Input
+                           </label>
+                           <div className="flex items-center justify-center p-8 rounded-lg border border-dashed border-border/50 bg-background/50">
+                             <div className="text-center space-y-1">
+                               <p className="text-sm font-medium text-muted-foreground">
+                                 NO SPECIFIC INPUT REQUIRED
+                               </p>
+                             </div>
+                           </div>
+                         </div>
+                       );
+                     }
+                     
+                     // Otherwise show form fields
                      return (
                        <div className="space-y-4">
                          <label className="text-sm font-medium">
