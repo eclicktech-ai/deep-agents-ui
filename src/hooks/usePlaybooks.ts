@@ -43,6 +43,9 @@ function normalizeCategory(category: string): PlaybookCategory {
  * 将 API 返回的 Playbook 数据转换为前端的 Playbook 类型
  */
 function transformApiPlaybook(apiPlaybook: ApiPlaybook, category: PlaybookCategory): Playbook {
+  // Filter out tags that start with ### (e.g., ###optimize, ###geo, ###audit, etc.)
+  const filteredTags = (apiPlaybook.tags || []).filter(tag => !tag.startsWith('###'));
+  
   return {
     id: apiPlaybook.id,
     title: apiPlaybook.name,
@@ -51,7 +54,7 @@ function transformApiPlaybook(apiPlaybook: ApiPlaybook, category: PlaybookCatego
     agentName: apiPlaybook.skill_id || apiPlaybook.name, // 使用 skill_id 或 name 作为 agentName
     autoActions: apiPlaybook.auto_actions || [],
     outputs: apiPlaybook.artifacts || [],
-    tags: apiPlaybook.tags || [],
+    tags: filteredTags,
     // options 暂时为空，如果 API 后续支持配置选项，可以在这里添加
     options: apiPlaybook.has_configure ? [] : undefined,
   };

@@ -104,6 +104,7 @@ export function mapApiResponseToContextData(apiResponse: ContextApiResponse): Co
   };
 
   const brandAssetsSingleton = getOnsiteSingleton("brand_assets");
+  const metaInfoSingleton = getOnsiteSingleton("meta_info");
   const heroSectionSingleton = getOnsiteSingleton("hero_section");
   const contactInfoSingleton = getOnsiteSingleton("contact_info");
   const monitoringScopeSingleton = getOffsiteSingleton("monitoring_scope");
@@ -182,15 +183,17 @@ export function mapApiResponseToContextData(apiResponse: ContextApiResponse): Co
     })),
     websiteContent: [
       // ============ Brand Assets -> WebsiteContent (用于 UI 渲染) ============
-      ...(ensureString(brandAssetsSingleton?.brandSubtitle) ? [{
+      // Subtitle: priority: meta_info.ogTitle > brandAssetsSingleton.brandSubtitle
+      ...(ensureString(metaInfoSingleton?.ogTitle || brandAssetsSingleton?.brandSubtitle) ? [{
         id: uuidv4(),
-        name: ensureString(brandAssetsSingleton.brandSubtitle),
+        name: ensureString(metaInfoSingleton?.ogTitle || brandAssetsSingleton?.brandSubtitle),
         url: "#meta-subtitle",
         type: "other" as const,
       }] : []),
-      ...(ensureString((brandAssetsSingleton as any)?.metaDescription || (brand as any)?.brand?.metaDescription) ? [{
+      // Meta Description: priority: meta_info.metaDescription > brandAssetsSingleton.metaDescription > brand.metaDescription
+      ...(ensureString(metaInfoSingleton?.metaDescription || (brandAssetsSingleton as any)?.metaDescription || (brand as any)?.brand?.metaDescription) ? [{
         id: uuidv4(),
-        name: ensureString((brandAssetsSingleton as any)?.metaDescription || (brand as any)?.brand?.metaDescription),
+        name: ensureString(metaInfoSingleton?.metaDescription || (brandAssetsSingleton as any)?.metaDescription || (brand as any)?.brand?.metaDescription),
         url: "#meta-description",
         type: "other" as const,
       }] : []),

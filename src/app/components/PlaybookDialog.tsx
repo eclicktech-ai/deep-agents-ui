@@ -9,7 +9,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -159,11 +158,13 @@ export function PlaybookDialog({
   // Initialize form data when playbook is selected or onboarding data changes
   useEffect(() => {
     if (selectedPlaybook) {
+      // Filter out tags starting with ###
+      const filteredTags = selectedPlaybook.tags.filter(tag => !tag.startsWith('###'));
       const formConfig = getSkillFormConfig(
         selectedPlaybook.agentName, 
         selectedPlaybook.id,
         selectedPlaybook.title,
-        selectedPlaybook.tags
+        filteredTags
       );
       if (formConfig) {
         const initialData: Record<string, string> = {};
@@ -454,12 +455,6 @@ export function PlaybookDialog({
             <div className="max-w-3xl mx-auto space-y-8">
               {/* Playbook Info */}
               <div className="space-y-6">
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2">
-                  {selectedPlaybook.tags.map(tag => (
-                    <Badge key={tag} variant="secondary">##{tag}</Badge>
-                  ))}
-                </div>
                 
                 {/* Description */}
                 <p className="text-base text-muted-foreground leading-relaxed">
@@ -538,11 +533,13 @@ export function PlaybookDialog({
 
                  {/* Expected Input Form */}
                  {(() => {
+                   // Filter out tags starting with ###
+                   const filteredTags = selectedPlaybook.tags.filter(tag => !tag.startsWith('###'));
                    const formConfig = getSkillFormConfig(
                      selectedPlaybook.agentName, 
                      selectedPlaybook.id,
                      selectedPlaybook.title,
-                     selectedPlaybook.tags
+                     filteredTags
                    );
                    
                    // Always show form section

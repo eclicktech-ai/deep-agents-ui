@@ -219,19 +219,31 @@ export function ContextEditDialog({
     // Accept both the "flat" shape (from context/all) and the nested UI shape.
     // context/all example:
     // { brandName: "SeoPage.ai", brandSubtitle: "...", metaDescription: "...", logoUrl: "...", primaryColor: "...", secondaryColor: "...", toneOfVoice: "..." }
+    // Also support meta_info object: { meta_info: { ogTitle: "...", metaDescription: "..." } }
     const brandNameRaw = raw?.brandName;
     const brandSubtitleRaw = raw?.brandSubtitle;
+    
+    // Get subtitle from meta_info.ogTitle first, then fallback to brandSubtitle or brandName.subtitle
+    const ogTitleValue = getFieldValue(raw, ["meta_info.ogTitle", "meta_info.og_title", "metaInfo.ogTitle", "metaInfo.og_title"]);
+    const subtitleValue = ogTitleValue || 
+                         (typeof brandSubtitleRaw === "string" ? brandSubtitleRaw : "") ||
+                         (brandNameRaw && typeof brandNameRaw === "object" ? (brandNameRaw.subtitle || "") : "");
+    
     const brandNameObj =
       typeof brandNameRaw === "string"
-        ? { name: brandNameRaw, subtitle: typeof brandSubtitleRaw === "string" ? brandSubtitleRaw : "" }
+        ? { name: brandNameRaw, subtitle: subtitleValue }
         : (brandNameRaw && typeof brandNameRaw === "object")
-          ? { name: brandNameRaw.name || "", subtitle: brandNameRaw.subtitle || "" }
-          : { name: "", subtitle: typeof brandSubtitleRaw === "string" ? brandSubtitleRaw : "" };
+          ? { name: brandNameRaw.name || "", subtitle: subtitleValue }
+          : { name: "", subtitle: subtitleValue };
+
+    // Get metaDescription from meta_info.metaDescription first, then fallback to metaDescription
+    const metaDescriptionValue = getFieldValue(raw, ["meta_info.metaDescription", "meta_info.meta_description", "metaInfo.metaDescription", "metaInfo.meta_description"]) ||
+                                getFieldValue(raw, ["metaDescription", "meta_description"]);
 
     return {
       // nested UI shape
       brandName: brandNameObj,
-      metaDescription: getFieldValue(raw, ["metaDescription", "meta_description"]),
+      metaDescription: metaDescriptionValue,
       images: {
         ogImage: getFieldValue(raw, ["images.ogImage", "images.og_image", "ogImage", "og_image"]),
         favicon: getFieldValue(raw, ["images.favicon", "favicon", "faviconUrl", "favicon_url"]),
@@ -260,10 +272,15 @@ export function ContextEditDialog({
   const toApiBrandAssets = (ui: any) => {
     // Convert UI nested shape back to the "flat" shape the backend currently emits in /context/all,
     // while still keeping extra nested fields for forward compatibility.
+    // Note: meta_info (ogTitle, metaDescription) is stored separately in onsite.singletons.meta_info,
+    // so we only return brand_assets fields here. meta_info will be handled separately if needed.
+    const subtitle = ui?.brandName?.subtitle ?? "";
+    const metaDescription = ui?.metaDescription ?? "";
+    
     const payload: any = {
       brandName: ui?.brandName?.name ?? "",
-      brandSubtitle: ui?.brandName?.subtitle ?? "",
-      metaDescription: ui?.metaDescription ?? "",
+      brandSubtitle: subtitle,
+      metaDescription: metaDescription,
       logoUrl: ui?.logos?.fullLogoLight ?? "",
       primaryColor: ui?.colors?.primaryLight ?? "",
       secondaryColor: ui?.colors?.secondaryLight ?? "",
@@ -617,13 +634,20 @@ export function ContextEditDialog({
           (section === "brand_assets" && (!raw || Object.keys(raw).length === 0)) ||
           (section === "monitoring_scope" && (!raw || Object.keys(raw).length === 0));
 
-        if (needContextAll) {
+        if (needContextAll || section === "brand_assets") {
           try {
             const all = await apiClient.getContextAll();
             if (section === "hero_headline" || section === "hero_subheadline") {
               raw = (all as any)?.onsite?.singletons?.hero_section || raw;
             } else if (section === "brand_assets") {
-              raw = (all as any)?.onsite?.singletons?.brand_assets || raw;
+              // Always merge brand_assets singleton with meta_info from onsite
+              const brandAssetsData = (all as any)?.onsite?.singletons?.brand_assets || raw;
+              const metaInfo = (all as any)?.onsite?.singletons?.meta_info || {};
+              // Merge meta_info into raw data for proper field mapping
+              raw = {
+                ...brandAssetsData,
+                meta_info: metaInfo,
+              };
             } else if (section === "monitoring_scope") {
               // Check if monitoring_scope exists in offsite singletons
               const monitoringScopeData = (all as any)?.offsite?.singletons?.monitoring_scope;
@@ -785,11 +809,48 @@ export function ContextEditDialog({
 
         await apiClient.upsertSingleton("hero_section", merged, heroVersion);
       } else if (config.section === "brand_assets") {
+        // Save brand_assets data
         await apiClient.upsertSingleton(
           "brand_assets",
           toApiBrandAssets(singletonData),
           singletonVersion
         );
+        
+        // Also try to save meta_info separately if it exists as a singleton
+        // Extract ogTitle and metaDescription from UI data
+        const subtitle = singletonData?.brandName?.subtitle ?? "";
+        const metaDescription = singletonData?.metaDescription ?? "";
+        if (subtitle || metaDescription) {
+          try {
+            // Try to get existing meta_info to preserve other fields and version
+            let metaInfoData: any = {};
+            let metaInfoVersion = 0;
+            try {
+              const existing = await apiClient.getSingleton("meta_info");
+              metaInfoData = existing.data || {};
+              metaInfoVersion = existing.version ?? 0;
+            } catch (e: any) {
+              // If meta_info doesn't exist yet, start with empty object
+              if (e?.status !== 404) {
+                console.warn("[ContextEditDialog] Failed to get meta_info:", e);
+              }
+            }
+            
+            // Merge with new values (use new values even if empty to allow clearing fields)
+            const updatedMetaInfo = {
+              ...metaInfoData,
+              ogTitle: subtitle,
+              metaDescription: metaDescription,
+            };
+            
+            // Try to save meta_info as singleton
+            await apiClient.upsertSingleton("meta_info", updatedMetaInfo, metaInfoVersion);
+          } catch (e: any) {
+            // If meta_info is not a singleton, silently continue
+            // The backend might handle meta_info differently
+            console.warn("[ContextEditDialog] Could not save meta_info as singleton:", e);
+          }
+        }
       } else if (config.section === "problem_statement" || config.section === "who_we_serve") {
         await apiClient.upsertSingleton(
           config.section,
