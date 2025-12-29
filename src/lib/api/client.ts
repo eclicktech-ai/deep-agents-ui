@@ -946,7 +946,23 @@ class ApiClient {
     const response = await this.get<any>('/onboarding/status', Object.keys(params).length > 0 ? params : undefined);
     return {
       status: response.status,
+      currentStep: response.current_step,
       completedSteps: response.completed_steps || [],
+      message: response.message,
+      navigationStats: response.navigation_stats ? {
+        sitemapTotal: response.navigation_stats.sitemap_total,
+        sitemapFiltered: response.navigation_stats.sitemap_filtered,
+        headerLinks: response.navigation_stats.header_links,
+        footerLinks: response.navigation_stats.footer_links,
+      } : undefined,
+      error: response.error,
+      researchInteractionId: response.research_interaction_id,
+      researchStatus: response.research_status,
+      researchUrl: response.research_url,
+      researchData: response.research_data,
+      startedAt: response.started_at,
+      completedAt: response.completed_at,
+      lastUpdatedAt: response.last_updated_at,
     } as OnboardingStatus;
   }
 
