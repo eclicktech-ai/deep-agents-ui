@@ -136,7 +136,7 @@ export const FileDiffView = React.memo<FileDiffViewProps>(
 
     // 计算 diff
     const diffLines = useMemo(() => {
-      if (!oldContent) return null;
+      if (!oldContent || !content) return null;
       return computeLineDiff(oldContent, content);
     }, [oldContent, content]);
 
@@ -259,7 +259,7 @@ export const FileDiffView = React.memo<FileDiffViewProps>(
                   color: "var(--muted-foreground)",
                 }}
               >
-                {content}
+                {content || ""}
               </SyntaxHighlighter>
             )}
           </div>
