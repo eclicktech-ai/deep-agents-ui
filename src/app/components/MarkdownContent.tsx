@@ -7,6 +7,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { cn } from "@/lib/utils";
 import { Copy, Check, ExternalLink, ZoomIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MarkdownContentProps {
   content: string;
@@ -548,6 +549,58 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
                 children?: React.ReactNode;
               }) {
                 const isExternal = href?.startsWith("http");
+                
+                // 检测是否是 GSC 授权链接
+                // 提取链接文本内容（忽略 React 元素）
+                const extractText = (node: React.ReactNode): string => {
+                  if (typeof node === 'string') return node;
+                  if (typeof node === 'number') return String(node);
+                  if (Array.isArray(node)) return node.map(extractText).join('');
+                  if (React.isValidElement(node)) {
+                    const props = node.props as { children?: React.ReactNode };
+                    if (props.children) {
+                      return extractText(props.children);
+                    }
+                  }
+                  return '';
+                };
+                const linkText = extractText(children).toLowerCase();
+                
+                const isGSCAuthLink = 
+                  (linkText && (
+                    linkText.includes('authorize gsc') ||
+                    linkText.includes('authorize google search console') ||
+                    linkText.includes('connect google search console') ||
+                    linkText.includes('gsc access')
+                  )) ||
+                  (href && (
+                    href.includes('accounts.google.com/o/oauth') ||
+                    (href.includes('oauth') && href.includes('google'))
+                  ));
+                
+                // 如果是 GSC 授权链接，渲染为灰色按钮
+                if (isGSCAuthLink) {
+                  return (
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
+                      className="mt-2 bg-black text-white hover:bg-gray-900 dark:bg-black dark:text-white dark:hover:bg-gray-900"
+                    >
+                      <a
+                        href={href}
+                        target={isExternal ? "_blank" : undefined}
+                        rel={isExternal ? "noopener noreferrer" : undefined}
+                        className="inline-flex items-center gap-1.5"
+                      >
+                        {children}
+                        {isExternal && <ExternalLink size={14} />}
+                      </a>
+                    </Button>
+                  );
+                }
+                
+                // 其他链接保持原样
                 return (
                   <a
                     href={href}
