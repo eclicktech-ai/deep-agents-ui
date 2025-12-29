@@ -91,7 +91,30 @@ export const RightSidebar = React.memo<RightSidebarProps>(
       setDialogOpen(true);
     };
 
-    const handleRunPlaybook = (playbook: Playbook, customInstructions?: string) => {
+    const handleRunPlaybook = (
+      playbook: Playbook, 
+      formData?: Record<string, string>, 
+      customInstructions?: string
+    ) => {
+      // Build form data section if provided
+      let formDataSection = '';
+      if (formData && Object.keys(formData).length > 0) {
+        const formEntries = Object.entries(formData)
+          .filter(([_, value]) => value && value.trim()) // Only include non-empty values
+          .map(([key, value]) => {
+            // Format field names to be more readable
+            const fieldName = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase())
+              .trim();
+            return `${fieldName}: ${value.trim()}`;
+          });
+        
+        if (formEntries.length > 0) {
+          formDataSection = `\nInput Parameters:\n${formEntries.join('\n')}`;
+        }
+      }
+
       const prompt = `Run the "${playbook.title}" agent (${playbook.agentName}).
         
 Category: ${playbook.category}
@@ -101,7 +124,7 @@ Auto Actions:
 ${playbook.autoActions.map(a => `- ${a}`).join('\n')}
 
 Expected Outputs:
-${playbook.outputs.map(o => `- ${o}`).join('\n')}
+${playbook.outputs.map(o => `- ${o}`).join('\n')}${formDataSection}
 
 ${customInstructions ? `Custom Instructions:\n${customInstructions}` : ''}`;
       

@@ -180,7 +180,7 @@ function AuthenticatedHome() {
               });
             } else if (result.status === "failed") {
               console.error("Deep Research failed:", result.error);
-              setDeepResearchStatus("idle");
+              setDeepResearchStatus("failed");
               toast.error("Deep Research failed", {
                 description: result.error || "Failed to analyze brand data.",
               });
@@ -197,7 +197,7 @@ function AuthenticatedHome() {
           setDeepResearchStatus("completed");
         } else if (onboardingStatus.researchStatus === "failed") {
           // 研究失败
-          setDeepResearchStatus("idle");
+          setDeepResearchStatus("failed");
         }
 
         setHasCheckedOnboarding(true);
@@ -255,7 +255,7 @@ function AuthenticatedHome() {
                 pollIntervalRef.current = null;
               }
             } else if (status.researchStatus === 'failed') {
-              setDeepResearchStatus("idle");
+              setDeepResearchStatus("failed");
               if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
                 pollIntervalRef.current = null;

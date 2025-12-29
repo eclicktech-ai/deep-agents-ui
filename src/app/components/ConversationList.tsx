@@ -113,6 +113,7 @@ interface ConversationListProps {
   onMutateReady?: (mutate: () => void) => void;
   onClose?: () => void;
   onDeleteSuccess?: () => void;
+  onDeleteCurrentConversation?: () => void;
 }
 
 export function ConversationList({
@@ -120,8 +121,9 @@ export function ConversationList({
   onMutateReady,
   onClose,
   onDeleteSuccess,
+  onDeleteCurrentConversation,
 }: ConversationListProps) {
-  const [currentCid] = useQueryState("cid");
+  const [currentCid, setCurrentCid] = useQueryState("cid");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -145,6 +147,7 @@ export function ConversationList({
     hasMore,
     loadMore,
     mutate,
+    data,
   } = useConversations({
     status: statusFilter === "all" ? undefined : statusFilter,
     limit: 20,
@@ -227,22 +230,72 @@ export function ConversationList({
     async () => {
       if (!confirmDeleteId || deletingId) return;
 
-      setDeletingId(confirmDeleteId);
+      const cidToDelete = confirmDeleteId;
+      setDeletingId(cidToDelete);
+      
+      // 保存原始数据以便失败时恢复（深拷贝）
+      const originalData = data ? data.map(page => [...page]) : undefined;
+      
       try {
-        await deleteConversation(confirmDeleteId);
-        mutate();
+        // 乐观更新：立即从缓存中移除该项
+        await mutate(
+          (currentData) => {
+            if (!currentData) return currentData;
+            // 从每一页中过滤掉被删除的对话
+            return currentData.map((page) => 
+              page.filter((conv) => conv.cid !== cidToDelete)
+            );
+          },
+          { revalidate: false } // 先不重新验证，等待API调用完成
+        );
+
+        // 调用删除 API
+        await deleteConversation(cidToDelete);
+        
+        // 删除成功后，立即重新验证以确保数据一致性
+        // 这样可以确保删除的对话不会在后续操作中重新出现
+        const updatedData = await mutate();
+        
+        // 检查删除后是否还有剩余的对话
+        // 使用重新验证后的最新数据来判断
+        const remainingConversations = updatedData ? updatedData.flat() : [];
+        const remainingCount = remainingConversations.length;
+        
+        // 如果删除的是当前正在查看的对话，需要清空内容并回到首页
+        if (currentCid === cidToDelete) {
+          // 清除 URL 中的 cid 参数
+          await setCurrentCid(null);
+          // 通知父组件清空内容（清空消息、重置状态等）
+          onDeleteCurrentConversation?.();
+          
+          // 只有在删除到最后一个对话时，才创建新对话
+          if (remainingCount === 0) {
+            onDeleteSuccess?.();
+          }
+        } else {
+          // 如果删除的不是当前对话，且删除到最后一个，才创建新对话
+          if (remainingCount === 0) {
+            onDeleteSuccess?.();
+          }
+        }
+        
         // 关闭弹出框
         onClose?.();
-        // 刷新聊天区域
-        onDeleteSuccess?.();
       } catch (error) {
         console.error("Failed to delete conversation:", error);
+        // 如果删除失败，恢复原始数据
+        if (originalData !== undefined) {
+          await mutate(() => originalData, { revalidate: false });
+        } else {
+          // 如果无法恢复，重新验证
+          await mutate();
+        }
       } finally {
         setDeletingId(null);
         setConfirmDeleteId(null);
       }
     },
-    [confirmDeleteId, deletingId, deleteConversation, mutate, onClose, onDeleteSuccess]
+    [confirmDeleteId, deletingId, currentCid, data, deleteConversation, mutate, onClose, onDeleteSuccess, onDeleteCurrentConversation, setCurrentCid]
   );
 
   // Handle edit title

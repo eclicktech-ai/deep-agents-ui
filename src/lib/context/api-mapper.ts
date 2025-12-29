@@ -178,33 +178,135 @@ export function mapApiResponseToContextData(apiResponse: ContextApiResponse): Co
         url: "#meta-description",
         type: "other" as const,
       }] : []),
-      ...(ensureString((brandAssetsSingleton as any)?.logoUrl) ? [{
+      // Logo URLs - support both flat and nested structure
+      ...(ensureString((brandAssetsSingleton as any)?.logos?.fullLogoLight || (brandAssetsSingleton as any)?.logos?.full_logo_light || (brandAssetsSingleton as any)?.logoUrl || (brandAssetsSingleton as any)?.logo_url) ? [{
         id: uuidv4(),
-        name: ensureString((brandAssetsSingleton as any)?.logoUrl),
+        name: ensureString((brandAssetsSingleton as any)?.logos?.fullLogoLight || (brandAssetsSingleton as any)?.logos?.full_logo_light || (brandAssetsSingleton as any)?.logoUrl || (brandAssetsSingleton as any)?.logo_url),
         url: "#brand-logo",
         type: "other" as const,
       }] : []),
-      ...(ensureString((brandAssetsSingleton as any)?.toneOfVoice) ? [{
+      ...(ensureString((brandAssetsSingleton as any)?.logos?.fullLogoDark || (brandAssetsSingleton as any)?.logos?.full_logo_dark || (brandAssetsSingleton as any)?.logoUrlDark || (brandAssetsSingleton as any)?.logo_url_dark) ? [{
         id: uuidv4(),
-        name: ensureString((brandAssetsSingleton as any)?.toneOfVoice),
+        name: ensureString((brandAssetsSingleton as any)?.logos?.fullLogoDark || (brandAssetsSingleton as any)?.logos?.full_logo_dark || (brandAssetsSingleton as any)?.logoUrlDark || (brandAssetsSingleton as any)?.logo_url_dark),
+        url: "#brand-logo-dark",
+        type: "other" as const,
+      }] : []),
+      ...(ensureString((brandAssetsSingleton as any)?.logos?.iconOnlyLight || (brandAssetsSingleton as any)?.logos?.icon_only_light || (brandAssetsSingleton as any)?.iconUrl || (brandAssetsSingleton as any)?.icon_url) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.logos?.iconOnlyLight || (brandAssetsSingleton as any)?.logos?.icon_only_light || (brandAssetsSingleton as any)?.iconUrl || (brandAssetsSingleton as any)?.icon_url),
+        url: "#brand-logo-icon",
+        type: "other" as const,
+      }] : []),
+      ...(ensureString((brandAssetsSingleton as any)?.logos?.iconOnlyDark || (brandAssetsSingleton as any)?.logos?.icon_only_dark || (brandAssetsSingleton as any)?.iconUrlDark || (brandAssetsSingleton as any)?.icon_url_dark) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.logos?.iconOnlyDark || (brandAssetsSingleton as any)?.logos?.icon_only_dark || (brandAssetsSingleton as any)?.iconUrlDark || (brandAssetsSingleton as any)?.icon_url_dark),
+        url: "#brand-logo-icon-dark",
+        type: "other" as const,
+      }] : []),
+      // Colors - support both flat and nested structure
+      ...(ensureString((brandAssetsSingleton as any)?.colors?.primaryLight || (brandAssetsSingleton as any)?.colors?.primary_light || (brandAssetsSingleton as any)?.primaryColor || (brandAssetsSingleton as any)?.primary_color) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.colors?.primaryLight || (brandAssetsSingleton as any)?.colors?.primary_light || (brandAssetsSingleton as any)?.primaryColor || (brandAssetsSingleton as any)?.primary_color),
+        url: "#brand-color-primary",
+        type: "other" as const,
+      }] : []),
+      ...(ensureString((brandAssetsSingleton as any)?.colors?.primaryDark || (brandAssetsSingleton as any)?.colors?.primary_dark) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.colors?.primaryDark || (brandAssetsSingleton as any)?.colors?.primary_dark),
+        url: "#brand-color-primary-dark",
+        type: "other" as const,
+      }] : []),
+      ...(ensureString((brandAssetsSingleton as any)?.colors?.secondaryLight || (brandAssetsSingleton as any)?.colors?.secondary_light || (brandAssetsSingleton as any)?.secondaryColor || (brandAssetsSingleton as any)?.secondary_color) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.colors?.secondaryLight || (brandAssetsSingleton as any)?.colors?.secondary_light || (brandAssetsSingleton as any)?.secondaryColor || (brandAssetsSingleton as any)?.secondary_color),
+        url: "#brand-color-secondary",
+        type: "other" as const,
+      }] : []),
+      ...(ensureString((brandAssetsSingleton as any)?.colors?.secondaryDark || (brandAssetsSingleton as any)?.colors?.secondary_dark) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.colors?.secondaryDark || (brandAssetsSingleton as any)?.colors?.secondary_dark),
+        url: "#brand-color-secondary-dark",
+        type: "other" as const,
+      }] : []),
+      // Typography - support both flat and nested structure
+      ...(ensureString((brandAssetsSingleton as any)?.typography?.heading || (brandAssetsSingleton as any)?.typography?.heading_font || (brandAssetsSingleton as any)?.headingFont || (brandAssetsSingleton as any)?.heading_font) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.typography?.heading || (brandAssetsSingleton as any)?.typography?.heading_font || (brandAssetsSingleton as any)?.headingFont || (brandAssetsSingleton as any)?.heading_font),
+        url: "#brand-font-heading",
+        type: "other" as const,
+      }] : []),
+      ...(ensureString((brandAssetsSingleton as any)?.typography?.body || (brandAssetsSingleton as any)?.typography?.body_font || (brandAssetsSingleton as any)?.bodyFont || (brandAssetsSingleton as any)?.body_font) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.typography?.body || (brandAssetsSingleton as any)?.typography?.body_font || (brandAssetsSingleton as any)?.bodyFont || (brandAssetsSingleton as any)?.body_font),
+        url: "#brand-font-body",
+        type: "other" as const,
+      }] : []),
+      // Images - ogImage and favicon
+      ...(ensureString((brandAssetsSingleton as any)?.images?.ogImage || (brandAssetsSingleton as any)?.images?.og_image || (brandAssetsSingleton as any)?.ogImage || (brandAssetsSingleton as any)?.og_image) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.images?.ogImage || (brandAssetsSingleton as any)?.images?.og_image || (brandAssetsSingleton as any)?.ogImage || (brandAssetsSingleton as any)?.og_image),
+        url: "#meta-og-image",
+        type: "other" as const,
+      }] : []),
+      ...(ensureString((brandAssetsSingleton as any)?.images?.favicon || (brandAssetsSingleton as any)?.favicon) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.images?.favicon || (brandAssetsSingleton as any)?.favicon),
+        url: "#meta-favicon",
+        type: "other" as const,
+      }] : []),
+      // Tone of Voice
+      ...(ensureString((brandAssetsSingleton as any)?.tone || (brandAssetsSingleton as any)?.toneOfVoice || (brandAssetsSingleton as any)?.tone_of_voice) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.tone || (brandAssetsSingleton as any)?.toneOfVoice || (brandAssetsSingleton as any)?.tone_of_voice),
         url: "#brand-tone",
+        type: "other" as const,
+      }] : []),
+      // Languages
+      ...(ensureString((brandAssetsSingleton as any)?.languages || (brandAssetsSingleton as any)?.supportedLanguages || (brandAssetsSingleton as any)?.supported_languages) ? [{
+        id: uuidv4(),
+        name: ensureString((brandAssetsSingleton as any)?.languages || (brandAssetsSingleton as any)?.supportedLanguages || (brandAssetsSingleton as any)?.supported_languages),
+        url: "#brand-languages",
         type: "other" as const,
       }] : []),
 
       // ============ Hero Section -> CTA / Metrics / Media ============
+      // Hero CTAs - from singleton or items
       ...(Array.isArray(heroSectionSingleton?.ctas) ? heroSectionSingleton.ctas.map((cta: any) => ({
         id: uuidv4(),
-        name: ensureString(cta?.text),
+        name: ensureString(cta?.text || cta?.title),
         url: "#cta",
         type: "other" as const,
-        description: ensureString(cta?.url),
+        description: ensureString(cta?.url || cta?.description),
       })) : []),
+      // Hero CTAs from items
+      ...((onsite.items?.hero_ctas || []).map((cta: any) => ({
+        id: uuidv4(),
+        name: ensureString(cta?.title || cta?.text),
+        url: "#cta",
+        type: "other" as const,
+        description: ensureString(cta?.url || cta?.description),
+      }))),
+      // Hero Metrics - from singleton or items
       ...(Array.isArray(heroSectionSingleton?.metrics) ? heroSectionSingleton.metrics.map((m: any) => ({
         id: uuidv4(),
-        name: ensureString(m?.value && m?.label ? `${m.value} · ${m.label}` : (m?.value || m?.label)),
+        name: ensureString(m?.value && m?.label ? `${m.value} · ${m.label}` : (m?.value || m?.label || m?.title || m?.name)),
         url: "#metric",
         type: "other" as const,
       })) : []),
+      // Hero Metrics from items
+      ...((onsite.items?.hero_metrics || []).map((m: any) => ({
+        id: uuidv4(),
+        name: ensureString(m?.title || m?.name || m?.value || ""),
+        url: "#metric",
+        type: "other" as const,
+      }))),
+      // Hero Media - from items
+      ...((onsite.items?.hero_media || []).map((m: any) => ({
+        id: uuidv4(),
+        name: ensureString(m?.image_url || m?.imageUrl || m?.title || m?.url || ""),
+        url: "#hero-media",
+        type: "other" as const,
+      }))),
 
       // ============ Header/Footer/Sitemap Links（直接渲染入口） ============
       ...(((onsite as any).items?.header_links || []) as any[]).map((item: any) => ({
@@ -230,21 +332,33 @@ export function mapApiResponseToContextData(apiResponse: ContextApiResponse): Co
       })),
 
       // Problem Statement
+      // Support both string array format: ["item1", "item2"] 
+      // and object array format: [{ title: "item1" }, { title: "item2" }]
       ...(getOnsiteSingleton("problem_statement")?.painPoints || []).map((pp: any) => ({
         id: uuidv4(),
-        name: pp.title || pp.name || "",
+        name: typeof pp === "string" ? pp : (pp?.title || pp?.name || ""),
         url: "#problem",
         type: "other" as const,
-        description: pp.description || "",
+        description: typeof pp === "string" ? "" : (pp?.description || ""),
       })),
-      // Who We Serve
+      // Who We Serve - targetAudiences
+      // Support both string array format: ["item1", "item2"] 
+      // and object array format: [{ name: "item1" }, { name: "item2" }]
       ...(getOnsiteSingleton("who_we_serve")?.targetAudiences || []).map((ta: any) => ({
         id: uuidv4(),
-        name: ta.name || "",
+        name: typeof ta === "string" ? ta : (ta?.name || ""),
         url: "#audience",
         type: "other" as const,
-        description: ta.description || "",
+        description: typeof ta === "string" ? "" : (ta?.description || ""),
       })),
+      // Who We Serve - industries (from singleton, not items)
+      ...(Array.isArray(getOnsiteSingleton("who_we_serve")?.industries) ? getOnsiteSingleton("who_we_serve").industries.map((ind: any) => ({
+        id: uuidv4(),
+        name: typeof ind === "string" ? ind : (ind?.name || ind?.title || ""),
+        url: "#industry",
+        type: "other" as const,
+        description: typeof ind === "string" ? "" : (ind?.description || ""),
+      })) : []),
       // Use Cases
       ...(onsite.items?.use_cases || []).map((uc: any) => ({
         id: uuidv4(),
@@ -265,14 +379,14 @@ export function mapApiResponseToContextData(apiResponse: ContextApiResponse): Co
       ...(onsite.items?.case_studies || []).map((cs: any) => ({
         id: uuidv4(),
         name: cs.title || cs.name || "",
-        url: cs.customerName ? `#case-study-${cs.customerName}` : uuidv4(),
+        url: cs.url || "",
         type: "case_study" as const,
         description: cs.description || "",
       })),
       // Testimonials
       ...(onsite.items?.testimonials || []).map((t: any) => ({
         id: uuidv4(),
-        name: t.quote || t.name || "",
+        name: t.title || t.quote || t.name || "",
         url: "",
         type: "testimonial" as const,
         description: t.description || "",
@@ -281,7 +395,7 @@ export function mapApiResponseToContextData(apiResponse: ContextApiResponse): Co
       ...(onsite.items?.trust_badges || []).map((tb: any) => ({
         id: uuidv4(),
         name: tb.title || tb.name || "",
-        url: "#logo",
+        url: "#trust-badge",
         type: "other" as const,
         description: tb.description || "",
       })),

@@ -145,12 +145,27 @@ export function ContextEditDialog({
   }, [singletonData, config]);
 
   // ============ Helpers ============
+  // Helper to ensure social links have unique IDs
+  const ensureSocialLinkId = (link: any): any => {
+    if (link.id) return link;
+    return { ...link, id: `social-link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` };
+  };
+
+  // Helper to strip IDs from social links before sending to API
+  const stripSocialLinkIds = (links: any[]): any[] => {
+    return (links || []).map((link: any) => {
+      const { id: _id, ...linkWithoutId } = link;
+      return linkWithoutId;
+    });
+  };
+
   // 兼容后端返回 camelCase / snake_case 字段，确保表单能正常回填
   const normalizeContextPerson = (p: any): ContextPerson => {
     const socialLinksRaw = p?.social_links ?? p?.socialLinks ?? [];
     const social_links = Array.isArray(socialLinksRaw)
       ? socialLinksRaw
           .map((x: any) => ({
+            id: x?.id || `social-link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             platform: x?.platform ?? x?.Platform ?? "",
             url: x?.url ?? x?.URL ?? "",
           }))
@@ -252,6 +267,39 @@ export function ContextEditDialog({
     return payload;
   };
 
+  const toApiSingletonData = (section: string, ui: any) => {
+    switch (section) {
+      case "problem_statement": {
+        // Convert object array to string array format that backend expects
+        // UI format: { painPoints: [{ title: "...", description: "..." }] }
+        // API format: { painPoints: ["...", "..."] } or { painPoints: [{ title: "..." }] }
+        const painPoints = ui?.painPoints || [];
+        return {
+          painPoints: painPoints.map((pp: any) => {
+            // If backend accepts string format, convert to string
+            // Otherwise keep as object
+            return typeof pp === "string" ? pp : (pp?.title || "");
+          }),
+        };
+      }
+      case "who_we_serve": {
+        // Convert object array to string array format that backend expects
+        // UI format: { targetAudiences: [{ name: "...", description: "..." }] }
+        // API format: { targetAudiences: ["...", "..."] }
+        const targetAudiences = ui?.targetAudiences || [];
+        return {
+          targetAudiences: targetAudiences.map((ta: any) => {
+            // If backend accepts string format, convert to string
+            // Otherwise keep as object
+            return typeof ta === "string" ? ta : (ta?.name || "");
+          }),
+        };
+      }
+      default:
+        return ui;
+    }
+  };
+
   const toUiSingletonData = (section: string, raw: any) => {
     switch (section) {
       case "brand_assets":
@@ -262,6 +310,48 @@ export function ContextEditDialog({
       case "hero_subheadline":
         // raw may be hero_section
         return { subheadline: raw?.subheadline ?? "" };
+      case "problem_statement": {
+        // Convert raw data to UI format, handling both camelCase and snake_case
+        // Support both string array format: ["item1", "item2"] 
+        // and object array format: [{ title: "item1" }, { title: "item2" }]
+        const painPointsRaw = raw?.painPoints || raw?.pain_points || [];
+        return {
+          painPoints: Array.isArray(painPointsRaw)
+            ? painPointsRaw.map((pp: any) => {
+                // If it's a string, convert to object format
+                if (typeof pp === "string") {
+                  return { title: pp, description: "" };
+                }
+                // If it's already an object, use it directly
+                return {
+                  title: pp?.title || pp?.name || "",
+                  description: pp?.description || "",
+                };
+              })
+            : [],
+        };
+      }
+      case "who_we_serve": {
+        // Convert raw data to UI format, handling both camelCase and snake_case
+        // Support both string array format: ["item1", "item2"] 
+        // and object array format: [{ name: "item1" }, { name: "item2" }]
+        const targetAudiencesRaw = raw?.targetAudiences || raw?.target_audiences || [];
+        return {
+          targetAudiences: Array.isArray(targetAudiencesRaw)
+            ? targetAudiencesRaw.map((ta: any) => {
+                // If it's a string, convert to object format
+                if (typeof ta === "string") {
+                  return { name: ta, description: "" };
+                }
+                // If it's already an object, use it directly
+                return {
+                  name: ta?.name || "",
+                  description: ta?.description || "",
+                };
+              })
+            : [],
+        };
+      }
       default:
         return raw || {};
     }
@@ -682,6 +772,12 @@ export function ContextEditDialog({
           toApiBrandAssets(singletonData),
           singletonVersion
         );
+      } else if (config.section === "problem_statement" || config.section === "who_we_serve") {
+        await apiClient.upsertSingleton(
+          config.section,
+          toApiSingletonData(config.section, singletonData),
+          singletonVersion
+        );
       } else {
         await apiClient.upsertSingleton(
           config.section,
@@ -978,7 +1074,7 @@ export function ContextEditDialog({
             url: (item as ContextPerson).url || "",
             role: (item as ContextPerson).role || "",
             notes: (item as ContextPerson).notes || "",
-            social_links: (item as ContextPerson).social_links || [],
+            social_links: ((item as ContextPerson).social_links || []).map(ensureSocialLinkId),
             extra: (item as ContextPerson).extra || {},
           }
         : {
@@ -1028,7 +1124,7 @@ export function ContextEditDialog({
             handle: formData.handle || null,
             url: formData.url || null,
             role: formData.role || null,
-            social_links: formData.social_links || [],
+            social_links: stripSocialLinkIds(formData.social_links || []),
             notes: formData.notes || null,
             extra,
           };
@@ -1080,7 +1176,7 @@ export function ContextEditDialog({
               handle: formData.handle || null,
               url: formData.url || null,
               role: formData.role || null,
-              social_links: formData.social_links || [],
+              social_links: stripSocialLinkIds(formData.social_links || []),
               notes: formData.notes || null,
               extra,
             },
@@ -2297,7 +2393,11 @@ export function ContextEditDialog({
                   const socialLinks = formData.social_links || [];
                   setFormData({
                     ...formData,
-                    social_links: [...socialLinks, { platform: "", url: "" }],
+                    social_links: [...socialLinks, { 
+                      id: `social-link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                      platform: "", 
+                      url: "" 
+                    }],
                   });
                 }}
               >
@@ -2311,53 +2411,61 @@ export function ContextEditDialog({
                   No social links added yet.
                 </p>
               ) : (
-                (formData.social_links || []).map((link: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex gap-2 p-2 border rounded-md bg-muted/50"
-                  >
-                    <div className="flex-1 space-y-2">
-                      <Input
-                        placeholder="Platform (e.g., Twitter, LinkedIn)"
-                        value={link.platform || ""}
-                        onChange={(e) => {
-                          const newLinks = [...(formData.social_links || [])];
-                          newLinks[index] = {
-                            ...newLinks[index],
-                            platform: e.target.value,
-                          };
-                          setFormData({ ...formData, social_links: newLinks });
-                        }}
-                      />
-                      <Input
-                        placeholder="URL"
-                        value={link.url || ""}
-                        onChange={(e) => {
-                          const newLinks = [...(formData.social_links || [])];
-                          newLinks[index] = {
-                            ...newLinks[index],
-                            url: e.target.value,
-                          };
-                          setFormData({ ...formData, social_links: newLinks });
-                        }}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      onClick={() => {
-                        const newLinks = (formData.social_links || []).filter(
-                          (_: any, i: number) => i !== index
-                        );
-                        setFormData({ ...formData, social_links: newLinks });
-                      }}
+                (formData.social_links || []).map((link: any) => {
+                  // Ensure link has an ID for stable key
+                  const linkWithId = ensureSocialLinkId(link);
+                  const linkId = linkWithId.id;
+                  
+                  return (
+                    <div
+                      key={linkId}
+                      className="flex gap-2 p-2 border rounded-md bg-muted/50"
                     >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          placeholder="Platform (e.g., Twitter, LinkedIn)"
+                          value={linkWithId.platform || ""}
+                          onChange={(e) => {
+                            const newLinks = (formData.social_links || []).map((l: any) => {
+                              const lWithId = ensureSocialLinkId(l);
+                              return lWithId.id === linkId 
+                                ? { ...lWithId, platform: e.target.value }
+                                : lWithId;
+                            });
+                            setFormData({ ...formData, social_links: newLinks });
+                          }}
+                        />
+                        <Input
+                          placeholder="URL"
+                          value={linkWithId.url || ""}
+                          onChange={(e) => {
+                            const newLinks = (formData.social_links || []).map((l: any) => {
+                              const lWithId = ensureSocialLinkId(l);
+                              return lWithId.id === linkId 
+                                ? { ...lWithId, url: e.target.value }
+                                : lWithId;
+                            });
+                            setFormData({ ...formData, social_links: newLinks });
+                          }}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => {
+                          const newLinks = (formData.social_links || [])
+                            .map(ensureSocialLinkId)
+                            .filter((l: any) => l.id !== linkId);
+                          setFormData({ ...formData, social_links: newLinks });
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

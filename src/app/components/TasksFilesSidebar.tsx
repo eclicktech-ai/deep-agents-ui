@@ -11,7 +11,6 @@ import {
   FileText,
   CheckCircle,
   Circle,
-  Clock,
   ChevronDown,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -150,13 +149,7 @@ export const TasksFilesSidebar = React.memo<{
             className="text-success/80"
           />
         );
-      case "in_progress":
-        return (
-          <Clock
-            size={12}
-            className="text-warning/80"
-          />
-        );
+
       default:
         return (
           <Circle
@@ -170,14 +163,12 @@ export const TasksFilesSidebar = React.memo<{
   const groupedTodos = useMemo(() => {
     return {
       pending: todos.filter((t) => t.status === "pending"),
-      in_progress: todos.filter((t) => t.status === "in_progress"),
       completed: todos.filter((t) => t.status === "completed"),
     };
   }, [todos]);
 
   const groupedLabels = {
     pending: "Pending",
-    in_progress: "In Progress",
     completed: "Completed",
   };
 

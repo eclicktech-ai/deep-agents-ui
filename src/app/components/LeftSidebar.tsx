@@ -6,7 +6,6 @@ import {
   Circle,
   Database,
   ListTodo,
-  Loader2,
   Plus,
   Globe,
   Share2,
@@ -72,13 +71,6 @@ const getStatusIcon = (status: TodoItem["status"], className?: string) => {
         <CheckCircle
           size={14}
           className={cn("flex-shrink-0 text-emerald-500", className)}
-        />
-      );
-    case "in_progress":
-      return (
-        <Loader2
-          size={14}
-          className={cn("flex-shrink-0 text-amber-500 animate-spin", className)}
         />
       );
     default:

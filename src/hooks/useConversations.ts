@@ -101,6 +101,7 @@ export function useConversations(options: UseConversationsOptions = {}) {
     hasMore,
     loadMore,
     mutate,
+    data,
   };
 }
 

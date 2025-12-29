@@ -12,15 +12,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Play, Zap, CheckCircle2, ArrowLeft, BarChart, Settings2, Loader2 } from "lucide-react";
 import { Playbook, PlaybookCategory } from "@/data/playbooks";
 import { usePlaybooks } from "@/hooks/usePlaybooks";
+import { getSkillFormConfig, type FormField } from "@/data/skillForms";
+import { useContextMenu } from "@/providers/ContextProvider";
 
 interface PlaybookDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category: PlaybookCategory | null;
-  onRunPlaybook: (playbook: Playbook, customInstructions?: string) => void;
+  onRunPlaybook: (playbook: Playbook, formData?: Record<string, string>, customInstructions?: string) => void;
 }
 
 export function PlaybookDialog({
@@ -32,6 +36,98 @@ export function PlaybookDialog({
   const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [customInstructions, setCustomInstructions] = useState("");
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  
+  // Get context data
+  const { contextData } = useContextMenu();
+  
+  // Extract competitor domains and niche/industry from context and save to localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Extract competitor domains from context
+    const competitors = contextData?.knowledge?.competitors || [];
+    const competitorWebsites = competitors
+      .map(c => c.website)
+      .filter((url): url is string => !!url && typeof url === 'string')
+      .map(url => {
+        // Normalize URLs: remove protocol, www, trailing slashes
+        return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
+      })
+      .filter(Boolean);
+    
+    // Save competitor domains to localStorage
+    if (competitorWebsites.length > 0) {
+      localStorage.setItem('seenos_onboarding_competitors', JSON.stringify(competitorWebsites));
+    }
+    
+    // Extract niche/industry from context (check multiple possible sources)
+    let nicheIndustry: string | null = null;
+    
+    // Try to get from market intelligence
+    const marketIntelligence = contextData?.knowledge?.marketIntelligence || [];
+    if (marketIntelligence.length > 0) {
+      // Extract industry/niche from market intelligence titles or types
+      const industries = marketIntelligence
+        .map(mi => {
+          // Try to extract from title or type
+          if (mi.type === 'industry_report' && mi.title) {
+            return mi.title;
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (industries.length > 0) {
+        nicheIndustry = industries[0] as string;
+      }
+    }
+    
+    // Try to get from target market in brand info
+    if (!nicheIndustry) {
+      const brandInfo = contextData?.onSite?.brandInfo;
+      if (brandInfo?.targetMarket) {
+        nicheIndustry = brandInfo.targetMarket;
+      }
+    }
+    
+    // Save niche/industry to localStorage if found
+    if (nicheIndustry) {
+      localStorage.setItem('seenos_onboarding_niche', nicheIndustry);
+    }
+  }, [contextData]);
+  
+  // Get domain from localStorage (saved during onboarding)
+  // Use useMemo to prevent unnecessary re-renders
+  const onboardingDomain = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('seenos_onboarding_domain');
+  }, []);
+  
+  // Get competitor domains from localStorage (if saved)
+  // Use useMemo to prevent unnecessary re-renders
+  const competitorDomains = React.useMemo(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('seenos_onboarding_competitors');
+      if (stored) {
+        const competitors = JSON.parse(stored);
+        return Array.isArray(competitors) ? competitors.filter(Boolean) : [];
+      }
+    } catch {
+      return [];
+    }
+    return [];
+  }, []);
+  
+  // Get niche/industry from localStorage (if saved)
+  const nicheIndustry = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('seenos_onboarding_niche');
+  }, []);
+  
+  const hasOnboardingDomain = !!onboardingDomain;
+  const hasCompetitorData = competitorDomains.length > 0;
+  const hasNicheIndustry = !!nicheIndustry;
 
   // Reset state when dialog closes or category changes
   useEffect(() => {
@@ -39,6 +135,7 @@ export function PlaybookDialog({
       setSelectedPlaybook(null);
       setSelectedOption(null);
       setCustomInstructions("");
+      setFormData({});
     }
   }, [open, category]);
 
@@ -51,6 +148,77 @@ export function PlaybookDialog({
       }
     }
   }, [selectedOption, selectedPlaybook]);
+
+  // Initialize form data when playbook is selected or onboarding data changes
+  useEffect(() => {
+    if (selectedPlaybook) {
+      const formConfig = getSkillFormConfig(
+        selectedPlaybook.agentName, 
+        selectedPlaybook.id,
+        selectedPlaybook.title,
+        selectedPlaybook.tags
+      );
+      if (formConfig) {
+        const initialData: Record<string, string> = {};
+        formConfig.fields.forEach((field) => {
+          if (field.autoFill === 'domain') {
+            // Get domain from localStorage (saved during onboarding)
+            if (onboardingDomain) {
+              initialData[field.key] = onboardingDomain;
+            } else {
+              initialData[field.key] = '';
+            }
+          } else if (field.autoFill === 'competitorDomains') {
+            // Get competitor domains from localStorage if available
+            if (hasCompetitorData && competitorDomains.length > 0) {
+              initialData[field.key] = competitorDomains.join(', ');
+            } else {
+              initialData[field.key] = '';
+            }
+          } else if (field.autoFill === 'niche') {
+            // Get niche/industry from localStorage if available
+            if (hasNicheIndustry && nicheIndustry) {
+              initialData[field.key] = nicheIndustry;
+            } else {
+              initialData[field.key] = '';
+            }
+          } else {
+            // For fields without autoFill, start with empty
+            initialData[field.key] = '';
+          }
+        });
+        // Always update formData with initialData to ensure auto-fill works
+        // This will fill empty fields or fields that should be auto-filled
+        setFormData(prev => {
+          // If formData is empty (first time), use initialData
+          if (!prev || Object.keys(prev).length === 0) {
+            return initialData;
+          }
+          // Otherwise, merge: keep user input for non-autoFill fields, but update autoFill fields if they're empty
+          const merged = { ...prev };
+          formConfig.fields.forEach((field) => {
+            if (field.autoFill) {
+              // Only update if the field is empty or if onboarding data just became available
+              if (!merged[field.key] || merged[field.key].trim() === '') {
+                merged[field.key] = initialData[field.key];
+              }
+            } else {
+              // Keep user input for non-autoFill fields
+              if (!merged[field.key]) {
+                merged[field.key] = initialData[field.key];
+              }
+            }
+          });
+          return merged;
+        });
+      } else {
+        setFormData({});
+      }
+    } else {
+      // Reset formData when no playbook is selected
+      setFormData({});
+    }
+  }, [selectedPlaybook, onboardingDomain, competitorDomains, hasCompetitorData, nicheIndustry, hasNicheIndustry]);
 
   // 获取 playbooks 数据
   const { playbooks: allPlaybooks, isLoading } = usePlaybooks({
@@ -80,9 +248,111 @@ export function PlaybookDialog({
 
   const handleRun = () => {
     if (selectedPlaybook) {
-      onRunPlaybook(selectedPlaybook, customInstructions);
+      // Validate required fields
+      const formConfig = getSkillFormConfig(selectedPlaybook.agentName, selectedPlaybook.id);
+      if (formConfig) {
+        const missingFields = formConfig.fields
+          .filter(field => field.required && !formData[field.key]?.trim())
+          .map(field => field.label);
+        
+        if (missingFields.length > 0) {
+          // You could show a toast or error message here
+          alert(`Please fill in required fields: ${missingFields.join(', ')}`);
+          return;
+        }
+      }
+      
+      onRunPlaybook(selectedPlaybook, formData, customInstructions);
       onOpenChange(false);
     }
+  };
+
+  const handleFormFieldChange = (key: string, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const renderFormField = (field: FormField) => {
+    const value = formData[field.key] || '';
+    
+    if (field.type === 'textarea') {
+      return (
+        <div key={field.key} className="space-y-2">
+          <Label htmlFor={field.key} className="text-sm font-medium">
+            {field.label}
+            {field.required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Textarea
+            id={field.key}
+            placeholder={field.placeholder}
+            value={value}
+            onChange={(e) => handleFormFieldChange(field.key, e.target.value)}
+            className="min-h-[80px]"
+            required={field.required}
+          />
+          {field.helpText && (
+            <p className="text-xs text-muted-foreground">{field.helpText}</p>
+          )}
+        </div>
+      );
+    }
+    
+    if (field.type === 'urls') {
+      return (
+        <div key={field.key} className="space-y-2">
+          <Label htmlFor={field.key} className="text-sm font-medium">
+            {field.label}
+            {field.required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Input
+            id={field.key}
+            type="text"
+            placeholder={field.placeholder}
+            value={value}
+            onChange={(e) => handleFormFieldChange(field.key, e.target.value)}
+            required={field.required}
+          />
+          {field.helpText && (
+            <p className="text-xs text-muted-foreground">{field.helpText}</p>
+          )}
+          {field.autoFill && (
+            <p className="text-xs text-muted-foreground">
+              Auto-fill: The system will use the website configured during your Onboarding as the default value
+            </p>
+          )}
+        </div>
+      );
+    }
+    
+    // Default to text/url input
+    return (
+      <div key={field.key} className="space-y-2">
+        <Label htmlFor={field.key} className="text-sm font-medium">
+          {field.label}
+          {field.required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+        <Input
+          id={field.key}
+          type={field.type === 'url' ? 'url' : 'text'}
+          placeholder={field.placeholder}
+          value={value}
+          onChange={(e) => handleFormFieldChange(field.key, e.target.value)}
+          required={field.required}
+        />
+        {field.helpText && (
+          <p className="text-xs text-muted-foreground">{field.helpText}</p>
+        )}
+        {field.autoFill === 'domain' && hasOnboardingDomain && (
+          <p className="text-xs text-muted-foreground">
+            Auto-fill: The system will use the website configured during your Onboarding as the default value
+          </p>
+        )}
+        {field.autoFill === 'competitorDomains' && hasCompetitorData && (
+          <p className="text-xs text-muted-foreground">
+            Auto-fill: The system will use the website configured during your Onboarding as the default value
+          </p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -99,6 +369,7 @@ export function PlaybookDialog({
                   setSelectedPlaybook(null);
                   setSelectedOption(null);
                   setCustomInstructions("");
+                  setFormData({});
                 }}
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -220,6 +491,31 @@ export function PlaybookDialog({
                   </div>
                 )}
 
+                 {/* Expected Input Form */}
+                 {(() => {
+                   const formConfig = getSkillFormConfig(
+                     selectedPlaybook.agentName, 
+                     selectedPlaybook.id,
+                     selectedPlaybook.title,
+                     selectedPlaybook.tags
+                   );
+                   
+                   // Always show form if config exists and has fields
+                   if (formConfig && formConfig.fields.length > 0) {
+                     return (
+                       <div className="space-y-4">
+                         <label className="text-sm font-medium">
+                           Expected Input
+                         </label>
+                         <div className="space-y-4 p-4 rounded-lg border border-border/50 bg-background/50">
+                           {formConfig.fields.map((field) => renderFormField(field))}
+                         </div>
+                       </div>
+                     );
+                   }
+                   return null;
+                 })()}
+
                 <div className="space-y-3">
                   <label className="text-sm font-medium">
                     Custom Instructions
@@ -255,6 +551,7 @@ export function PlaybookDialog({
                   className="group relative flex flex-col gap-4 rounded-lg border p-5 hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => {
                     setSelectedPlaybook(playbook);
+                    setFormData({});
                     if (playbook.options && playbook.options.length > 0) {
                       setSelectedOption(playbook.options[0].value); // Select first option by default
                     }

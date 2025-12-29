@@ -861,14 +861,14 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                 <Label className="text-xs text-muted-foreground">
                   Case Studies
                   {(contextData.onSite.websiteContent || []).filter(
-                    (c: any) => c.url === "#case-study"
+                    (c: any) => c.type === "case_study"
                   ).length > 0 && (
                     <span>
                       {" "}
                       (
                       {
                         (contextData.onSite.websiteContent || []).filter(
-                          (c: any) => c.url === "#case-study"
+                          (c: any) => c.type === "case_study"
                         ).length
                       }
                       )
@@ -877,18 +877,18 @@ export function OnSiteTab({ contextData, openEditDialog }: TabProps) {
                 </Label>
                 <div className="space-y-1.5">
                   {(contextData.onSite.websiteContent || []).filter(
-                    (c: any) => c.url === "#case-study"
+                    (c: any) => c.type === "case_study"
                   ).length === 0 ? (
                     <div className="text-xs text-muted-foreground text-center py-2 border border-dashed rounded-md">
                       No case studies
                     </div>
                   ) : (
                     (contextData.onSite.websiteContent || [])
-                      .filter((c: any) => c.url === "#case-study")
+                      .filter((c: any) => c.type === "case_study")
                       .map((item: any) => (
                         <ReadOnlyField
                           key={item.id}
-                          value={item.url}
+                          value={item.url || item.name || ""}
                         />
                       ))
                   )}

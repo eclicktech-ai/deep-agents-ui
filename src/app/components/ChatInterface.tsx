@@ -75,6 +75,7 @@ export const ChatInterface = React.memo(() => {
     cid,
     startNewChat,
     switchConversation,
+    setCid,
   } = useChatContext();
 
   // Use suggestions hook
@@ -160,6 +161,14 @@ export const ChatInterface = React.memo(() => {
       startNewChat();
     }
   }, [startNewChat]);
+
+  // 处理删除当前对话的回调
+  const handleDeleteCurrentConversation = useCallback(async () => {
+    // 清空内容：将 cid 设置为 null，这会触发清空消息、重置状态等
+    if (setCid) {
+      await setCid(null);
+    }
+  }, [setCid]);
 
   // Calculate position based on anchor element
   useEffect(() => {
@@ -707,6 +716,7 @@ export const ChatInterface = React.memo(() => {
                 onSelect={handleConversationSelect}
                 onClose={() => setShowAllChats(false)}
                 onDeleteSuccess={handleNewChat}
+                onDeleteCurrentConversation={handleDeleteCurrentConversation}
               />
             </div>
           </div>

@@ -1,9 +1,4 @@
-/**
- * SeenOS HTTP API 客户端
- * 基于 FRONTEND_API_GUIDE.md 实现
- * 
- * Base URL: http://localhost:8000/api
- */
+
 
 // ============ 配置 ============
 const getApiBaseUrl = (): string => {
@@ -1026,6 +1021,38 @@ class ApiClient {
   /** 验证项目 URL */
   async validateProjectUrl(url: string): Promise<ValidateUrlResponse> {
     return this.post<ValidateUrlResponse>('/projects/validate-url', { url });
+  }
+
+  /** 清除项目上下文 (管理员) - 通过本地API路由代理以避免CORS问题 */
+  async clearProjectContext(projectId: string): Promise<{ message: string }> {
+    // 使用本地API路由代理，避免CORS问题
+    const response = await fetch(`/api/admin/clear-project-context?projectId=${encodeURIComponent(projectId)}`, {
+      method: 'DELETE',
+      headers: {
+        ...this.getHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      let errorData: { error?: { code?: string; message?: string }; message?: string; detail?: string } = {};
+      try {
+        errorData = await response.json();
+      } catch {
+        // 忽略 JSON 解析错误
+      }
+
+      const errorMessage = errorData.error?.message || errorData.message || errorData.detail || `HTTP ${response.status}`;
+      const error: ApiError = new Error(errorMessage);
+      error.code = errorData.error?.code;
+      error.status = response.status;
+      throw error;
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return response.json();
+    }
+    return { message: 'Project context cleared successfully' };
   }
 
   // ============ Playbooks API ============

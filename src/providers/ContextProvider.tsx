@@ -122,8 +122,8 @@ interface ContextContextType {
   isContextEmpty: boolean;
   wizardOpen: boolean;
   setWizardOpen: (open: boolean) => void;
-  deepResearchStatus: "loading" | "completed" | "idle";
-  setDeepResearchStatus: (status: "loading" | "completed" | "idle") => void;
+  deepResearchStatus: "loading" | "completed" | "idle" | "failed";
+  setDeepResearchStatus: (status: "loading" | "completed" | "idle" | "failed") => void;
   onboardingStatus: OnboardingStatus | null;
   setOnboardingStatus: (status: OnboardingStatus | null) => void;
   
@@ -192,7 +192,7 @@ function ContextDataProvider({ children }: { children: ReactNode }) {
   const [contextData, setContextDataState] = useState<ContextData>(initialContextData);
   const [isLoaded, setIsLoaded] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [deepResearchStatus, setDeepResearchStatus] = useState<"loading" | "completed" | "idle">("loading");
+  const [deepResearchStatus, setDeepResearchStatus] = useState<"loading" | "completed" | "idle" | "failed">("loading");
   const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
   const [filesData, setFilesData] = useState<ContextListResponse | null>(null);
 

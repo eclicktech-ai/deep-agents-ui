@@ -231,6 +231,20 @@ export default function OnboardingPage() {
         // Use normalized URL from validation
         const normalizedUrl = validationResult.normalized_url || finalUrl;
 
+        // Extract domain from URL and save to localStorage
+        try {
+          const urlObj = new URL(normalizedUrl);
+          const domain = urlObj.hostname.replace(/^www\./, '');
+          localStorage.setItem("seenos_onboarding_domain", domain);
+        } catch {
+          // If URL parsing fails, try to extract domain manually
+          const domain = normalizedUrl
+            .replace(/^https?:\/\//, '')
+            .replace(/^www\./, '')
+            .replace(/\/$/, '');
+          localStorage.setItem("seenos_onboarding_domain", domain);
+        }
+
         // Step 2: Create or Update project
         // Extract domain name for project name
         let projectName = "My Website";
@@ -434,20 +448,6 @@ export default function OnboardingPage() {
                   ref={faceRef}
                   className="relative inline-flex items-center justify-center w-[0.8em] h-[0.8em] rounded-full border-2 border-foreground"
                 >
-                  {/* Santa Hat */}
-                  <img
-                    src="/santahat.png"
-                    alt="Santa Hat"
-                    className="absolute left-1/2 z-10 pointer-events-none"
-                    style={{
-                      background: 'transparent',
-                      top: '-0.6em',
-                      width: '0.8em',
-                      height: 'auto',
-                      transform: 'translateX(10%) scale(1.5) rotate(24deg)',
-                      transformOrigin: 'center top',
-                    }}
-                  />
                   {/* Left eye */}
                   <span 
                     className="absolute rounded-full bg-foreground"
