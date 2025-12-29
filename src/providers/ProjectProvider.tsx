@@ -55,11 +55,20 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
 
   // 状态
   const [projects, setProjects] = useState<Project[]>([]);
-  const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [currentProject, setCurrentProjectState] = useState<Project | null>(null);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // 包装 setCurrentProject，同时更新本地存储
+  const setCurrentProject = useCallback((project: Project | null) => {
+    setCurrentProjectState(project);
+    // 从项目 API 的 domain 字段更新本地存储的 seenos_onboarding_domain
+    if (project?.domain) {
+      localStorage.setItem("seenos_onboarding_domain", project.domain);
+    }
+  }, []);
 
   // ============ 加载项目列表 ============
   const loadProjects = useCallback(async () => {
@@ -72,6 +81,14 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
       const response = await apiClient.getProjects();
       setProjects(response.projects);
       setTotal(response.total);
+      
+      // 从项目 API 的 domain 字段更新本地存储的 seenos_onboarding_domain
+      if (response.projects && response.projects.length > 0) {
+        const firstProject = response.projects[0];
+        if (firstProject.domain) {
+          localStorage.setItem("seenos_onboarding_domain", firstProject.domain);
+        }
+      }
     } catch (err: any) {
       console.error("[ProjectProvider] Failed to load projects:", err);
       setError(err.message || "Failed to load projects");
@@ -94,7 +111,11 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
       const project = await apiClient.createProject(data);
       setProjects((prev) => [project, ...prev]);
       setTotal((prev) => prev + 1);
-      setCurrentProject(project);
+      setCurrentProjectState(project);
+      // 从项目 API 的 domain 字段更新本地存储的 seenos_onboarding_domain
+      if (project.domain) {
+        localStorage.setItem("seenos_onboarding_domain", project.domain);
+      }
       return project;
     } catch (err: any) {
       console.error("[ProjectProvider] Failed to create project:", err);
@@ -117,7 +138,11 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
 
     try {
       const project = await apiClient.getProject(projectId);
-      setCurrentProject(project);
+      setCurrentProjectState(project);
+      // 从项目 API 的 domain 字段更新本地存储的 seenos_onboarding_domain
+      if (project.domain) {
+        localStorage.setItem("seenos_onboarding_domain", project.domain);
+      }
       return project;
     } catch (err: any) {
       console.error("[ProjectProvider] Failed to get project:", err);
@@ -151,7 +176,11 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
       
       // 更新当前项目（如果是当前项目）
       if (currentProject?.id === projectId) {
-        setCurrentProject(updatedProject);
+        setCurrentProjectState(updatedProject);
+        // 从项目 API 的 domain 字段更新本地存储的 seenos_onboarding_domain
+        if (updatedProject.domain) {
+          localStorage.setItem("seenos_onboarding_domain", updatedProject.domain);
+        }
       }
       
       return updatedProject;
@@ -195,7 +224,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     } else {
       // 未登录时清空状态
       setProjects([]);
-      setCurrentProject(null);
+      setCurrentProjectState(null);
       setTotal(0);
       setError(null);
     }

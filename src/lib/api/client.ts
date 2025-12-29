@@ -933,24 +933,20 @@ class ApiClient {
   // ============ Onboarding API ============
 
   /** 获取 Onboarding 状态 */
-  async getOnboardingStatus(): Promise<OnboardingStatus> {
-    const response = await this.get<any>('/onboarding/status');
-    
-    // 转换字段名：从下划线格式转换为驼峰格式
+  async getOnboardingStatus(projectId?: string): Promise<OnboardingStatus> {
+    const params: Record<string, string> = {};
+    // 如果未传入 projectId，从 localStorage 读取
+    let finalProjectId = projectId;
+    if (!finalProjectId && typeof window !== 'undefined') {
+      finalProjectId = localStorage.getItem('seenos_current_project_id') || undefined;
+    }
+    if (finalProjectId) {
+      params.project_id = finalProjectId;
+    }
+    const response = await this.get<any>('/onboarding/status', Object.keys(params).length > 0 ? params : undefined);
     return {
       status: response.status,
-      currentStep: response.current_step,
       completedSteps: response.completed_steps || [],
-      message: response.message,
-      navigationStats: response.navigation_stats,
-      error: response.error,
-      researchInteractionId: response.research_interaction_id,
-      researchStatus: response.research_status,
-      researchUrl: response.research_url,
-      researchData: response.research_data,
-      startedAt: response.started_at,
-      completedAt: response.completed_at,
-      lastUpdatedAt: response.last_updated_at,
     } as OnboardingStatus;
   }
 
