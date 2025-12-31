@@ -96,6 +96,7 @@ function extractFilesFromApiResponse(apiResponse: any): ContextListResponse {
     status: (source.status || 'ready') as 'pending' | 'processing' | 'ready' | 'error',
     errorMessage: source.errorMessage || undefined,
     createdAt: source.createdAt || source.created_at || source.addedAt || new Date().toISOString(),
+    downloadUrl: source.downloadUrl || source.url || source.download_url || undefined,
   }));
   
   // 计算总大小

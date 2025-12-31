@@ -468,6 +468,7 @@ export interface ContextFile {
   status: 'pending' | 'processing' | 'ready' | 'error';
   errorMessage?: string;
   createdAt: string;
+  downloadUrl?: string; // S3 公开下载链接
 }
 
 /** 上下文列表响应 */

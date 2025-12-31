@@ -664,6 +664,7 @@ class ApiClient {
       status: (source.status || 'ready') as 'pending' | 'processing' | 'ready' | 'error',
       errorMessage: source.errorMessage || undefined,
       createdAt: source.createdAt || source.created_at || source.addedAt || new Date().toISOString(),
+      downloadUrl: source.downloadUrl || source.url || source.download_url || undefined,
     }));
 
     const totalSize = contexts.reduce((sum, file) => sum + file.fileSize, 0);
@@ -1135,6 +1136,7 @@ export interface ContextFile {
   status: 'pending' | 'processing' | 'ready' | 'error';
   errorMessage?: string;
   createdAt: string;
+  downloadUrl?: string; // S3 公开下载链接
 }
 
 /** 上下文列表响应 */

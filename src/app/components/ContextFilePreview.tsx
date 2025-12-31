@@ -93,6 +93,28 @@ export function ContextFilePreview({ file, open, onOpenChange }: ContextFilePrev
   const handleDownload = useCallback(async () => {
     if (!file) return;
     
+    // 如果有 downloadUrl，直接使用它下载
+    if (file.downloadUrl) {
+      setIsDownloading(true);
+      try {
+        const link = document.createElement('a');
+        link.href = file.downloadUrl;
+        link.download = file.filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("File downloaded successfully");
+      } catch (error) {
+        console.error("Failed to download via URL:", error);
+        toast.error("Failed to download file");
+      } finally {
+        setIsDownloading(false);
+      }
+      return;
+    }
+    
+    // 否则使用 API 下载
     setIsDownloading(true);
     try {
       await downloadFile(file.id, file.filename);

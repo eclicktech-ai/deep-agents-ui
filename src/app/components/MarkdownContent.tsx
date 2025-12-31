@@ -385,35 +385,6 @@ function unwrapMarkdownCodeBlocks(content: string): string {
   return processed;
 }
 
-// 图片预览模态框
-const ImagePreviewModal = React.memo<{
-  src: string;
-  alt: string;
-  onClose: () => void;
-}>(({ src, alt, onClose }) => {
-  return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      onClick={onClose}
-    >
-      <div className="relative max-h-[90vh] max-w-[90vw]">
-        <img
-          src={src}
-          alt={alt}
-          className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
-        />
-        <button
-          onClick={onClose}
-          className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground shadow-lg hover:bg-muted"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-  );
-});
-ImagePreviewModal.displayName = "ImagePreviewModal";
-
 // 代码块复制按钮
 const CopyButton = React.memo<{ code: string }>(({ code }) => {
   const [copied, setCopied] = useState(false);
@@ -438,7 +409,6 @@ CopyButton.displayName = "CopyButton";
 
 export const MarkdownContent = React.memo<MarkdownContentProps>(
   ({ content, className = "", cid }) => {
-    const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
     const [downloadingUrl, setDownloadingUrl] = useState<string | null>(null);
 
     // 检测当前主题
@@ -485,6 +455,48 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
         setDownloadingUrl(null);
       }
     }, [cid, extractS3FileInfo]);
+
+    // 处理图片下载
+    const handleImageDownload = useCallback((e: React.MouseEvent, src: string, alt: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // 从 URL 提取文件名
+      let filename = 'image';
+      try {
+        const urlObj = new URL(src);
+        const lastSegment = urlObj.pathname.split('/').pop();
+        if (lastSegment) {
+          filename = decodeURIComponent(lastSegment);
+          if (filename.includes('%')) {
+            filename = decodeURIComponent(filename);
+          }
+        } else {
+          filename = alt || 'image';
+        }
+      } catch {
+        filename = alt || 'image';
+      }
+      
+      // 如果没有扩展名，尝试从 URL 检测
+      if (!filename.includes('.')) {
+        const match = src.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?|$)/i);
+        if (match) {
+          filename = filename + '.' + match[1].toLowerCase();
+        } else {
+          filename = filename + '.jpg';
+        }
+      }
+
+      // 直接使用 <a download>，跨域时会打开新页面（浏览器限制，无法绕过）
+      const link = document.createElement('a');
+      link.href = src;
+      link.download = filename;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }, []);
 
     return (
       <>
@@ -623,14 +635,19 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
                   }
                   return '';
                 };
-                const linkText = extractText(children).toLowerCase();
+                const linkText = extractText(children);
+                const linkTextLower = linkText.toLowerCase();
+                
+                // 检测链接是否来自工具输出的 JSON
+                // 如果链接文本就是 URL 本身（trim 后），说明它可能是来自 JSON 输出的字段值
+                const isFromToolOutput = href && linkText.trim() === href.trim();
                 
                 const isGSCAuthLink = 
-                  (linkText && (
-                    linkText.includes('authorize gsc') ||
-                    linkText.includes('authorize google search console') ||
-                    linkText.includes('connect google search console') ||
-                    linkText.includes('gsc access')
+                  (linkTextLower && (
+                    linkTextLower.includes('authorize gsc') ||
+                    linkTextLower.includes('authorize google search console') ||
+                    linkTextLower.includes('connect google search console') ||
+                    linkTextLower.includes('gsc access')
                   )) ||
                   (href && (
                     href.includes('accounts.google.com/o/oauth') ||
@@ -640,6 +657,7 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
                 // 检测是否是 S3 下载链接
                 const isS3DownloadLink = href && (
                   href.includes('seenos-context.s3.amazonaws.com') ||
+                  href.includes('seenos.s3.amazonaws.com') ||
                   href.includes('agent-files')
                 );
                 
@@ -650,11 +668,26 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
                     href.includes('download') ||
                     href.includes('/download/')
                   )) ||
-                  (linkText && (
-                    linkText.includes('download') ||
-                    linkText.includes('serp analysis docx') ||
-                    linkText.includes('download serp')
+                  (linkTextLower && (
+                    linkTextLower.includes('download') ||
+                    linkTextLower.includes('serp analysis docx') ||
+                    linkTextLower.includes('download serp')
                   ));
+                
+                // 如果链接来自工具输出的 JSON，不进行特殊处理，只显示为普通链接
+                if (isFromToolOutput) {
+                  return (
+                    <a
+                      href={href}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                      className="inline-flex items-center gap-0.5 text-primary no-underline hover:underline"
+                    >
+                      {children}
+                      {isExternal && <ExternalLink size={12} className="ml-0.5" />}
+                    </a>
+                  );
+                }
                 
                 // 如果是 GSC 授权链接，渲染为灰色按钮
                 if (isGSCAuthLink) {
@@ -797,7 +830,7 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
                   </tr>
                 );
               },
-              // 图片 - 支持点击放大
+              // 图片 - 支持点击下载
               img(props) {
                 const src = typeof props.src === 'string' ? props.src : '';
                 const alt = props.alt || "";
@@ -812,7 +845,7 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
                       alt={alt}
                       className="max-w-full cursor-pointer rounded-lg shadow-sm transition-shadow hover:shadow-md"
                       loading="lazy"
-                      onClick={() => setPreviewImage({ src, alt })}
+                      onClick={(e) => handleImageDownload(e, src, alt)}
                     />
                   </span>
                 );
@@ -842,15 +875,6 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
             {preprocessMarkdown(content)}
           </ReactMarkdown>
         </div>
-
-        {/* 图片预览模态框 */}
-        {previewImage && (
-          <ImagePreviewModal
-            src={previewImage.src}
-            alt={previewImage.alt}
-            onClose={() => setPreviewImage(null)}
-          />
-        )}
       </>
     );
   }

@@ -186,6 +186,27 @@ export function ContextTab() {
   // 处理文件下载
   const handleDownload = useCallback(async (file: ContextFile, e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // 如果有 downloadUrl，直接使用它下载
+    if (file.downloadUrl) {
+      try {
+        const link = document.createElement('a');
+        link.href = file.downloadUrl;
+        link.download = file.filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("File downloaded successfully");
+        return;
+      } catch (error) {
+        console.error("Failed to download via URL:", error);
+        toast.error("Failed to download file");
+        return;
+      }
+    }
+    
+    // 否则使用 API 下载
     try {
       await downloadFile(file.id, file.filename);
       toast.success("File downloaded successfully");
